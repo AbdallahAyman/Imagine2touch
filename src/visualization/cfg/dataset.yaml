@@ -1,0 +1,12 @@
+data_path: ${path:"data_collection/data"}
+# path: ${path:"Archive"}
+model_id: 3
+reconstructed_data_path: ${path:"models/Ae_models/${model_id}"}
+object_names: hexagon
+object_name: hexagon # single object for data_visualizer
+image_size: 48
+binary: True
+aggregated_ambient: False
+ambient_every_contact: False
+handle_negative_data: True
+return_reskin_filter: False
