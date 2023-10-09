@@ -131,12 +131,11 @@ dmypy.json
 
 # add data to gitignore
 src/data_collection/data
-src/reskin_calibration/data
-src/task/data
-src/tests/data
-src/visualization/data
-src/utils/data
-src/visualizations/data
+src/reskin_calibration/calibration_data
+src/task/task_data
+src/tests/dummy_data
+src/utils/utils_data
+src/visualization/visualization_data
 
 # add wandb to gitignore
 wandb
