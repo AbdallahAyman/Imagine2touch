@@ -2,7 +2,7 @@ from PIL import Image
 import os
 import cv2
 import hydra
-from src.data_collection.utils import search_folder
+from src.utils.data_utils import search_folder
 
 module_dir = os.path.dirname(__file__)  # get current directory
 files = os.listdir(module_dir)

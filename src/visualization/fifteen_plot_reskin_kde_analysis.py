@@ -6,7 +6,7 @@ import hydra
 from omegaconf import OmegaConf
 import matplotlib.pyplot as plt
 from matplotlib import patches
-from src.data_collection.utils import search_folder
+from src.utils.data_utils import search_folder
 import seaborn as sns
 from src.reskin_calibration.dataset import get_ambient_data, get_reskin_reading
 

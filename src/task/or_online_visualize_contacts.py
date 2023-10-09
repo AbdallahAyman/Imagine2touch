@@ -1,5 +1,5 @@
 # repo modules
-from src.task.utils.utils import normalize_p, viz_PC
+from src.utils.task_utils.utils import normalize_p, viz_PC
 from src.utils.utils import (
     load_normals,
     safety_one,

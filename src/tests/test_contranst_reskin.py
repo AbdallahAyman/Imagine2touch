@@ -8,7 +8,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # repo modules
-from src.models.utils import preprocess_object_data
+from src.utils.model_utils import preprocess_object_data
 
 if __name__ == "__main__":
     ## configurations from trainae.yaml to use trainae preprocess

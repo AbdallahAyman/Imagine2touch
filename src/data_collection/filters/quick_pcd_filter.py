@@ -1,6 +1,6 @@
 import os
 import open3d as o3d
-from src.data_collection.utils import search_folder
+from src.utils.data_utils import search_folder
 from src.utils.utils import point_cloud_info
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ from omegaconf import OmegaConf
 
 # repo modules
 from src.utils.utils import WORLD_IN_ROBOT, WCAMERA_IN_TCP
-from src.data_collection.utils import (
+from src.utils.data_utils import (
     get_object_transforms_camera_in_world,
     get_spatial_info,
     search_folder,

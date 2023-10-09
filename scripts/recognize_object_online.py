@@ -8,7 +8,7 @@ if False:
 # repo modules
 import argparse
 from scripts.collect_data import init_devices
-from src.task.utils import mask_from_depth_mesh, normalize_p, update_po
+from src.utils.task_utils import mask_from_depth_mesh, normalize_p, update_po
 from src.utils.utils import (
     load_normals,
     safety_one,

@@ -15,7 +15,7 @@ from PIL import Image
 from src.utils.utils import WCAMERA_IN_TCP
 
 # relative modules
-from src.models.depth_correction_utils import get_rgb_depth, apply_depth_correction
+from src.utils.model_depth_correction_utils import get_rgb_depth, apply_depth_correction
 
 
 # utilities

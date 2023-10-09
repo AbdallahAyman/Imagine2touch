@@ -22,7 +22,7 @@ from matplotlib.colors import Normalize
 from matplotlib import colors as normcolors
 
 # repo modules
-from src.models.utils import preprocess_object_data
+from src.utils.model_utils import preprocess_object_data
 from src.visualizations.reskin_image_visualizer import (
     plot_combined_heatmap,
     split_rgb,

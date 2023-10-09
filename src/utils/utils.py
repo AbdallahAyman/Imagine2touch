@@ -36,7 +36,7 @@ TOOL_OFFSET_IN_TCP = [0, 0, 0.057, 0]
 # nice orientation of TCP, 180 degrees around y axis to face the tcp towards the earth, given the robot's frame is coincident with the earth's frame
 FIXED_ROBOT_ORN = [0, np.pi, 0]
 # Recorded with Kinect Tripod to capture the raised object placeholder on the table frame. Change to suit your setup.
-# WORLD_IN_ROBOT = np.load(f"{dir_path}/world_robot_transform.npy", allow_pickle=True)
+# WORLD_IN_ROBOT = np.load(f"{dir_path}/utils_data/world_robot_transform.npy", allow_pickle=True)
 WORLD_IN_ROBOT = np.asarray(
     [
         [1, 0, 0, 0.427],
@@ -47,11 +47,11 @@ WORLD_IN_ROBOT = np.asarray(
 )  # recorded manually
 ROBOT_IN_WORLD = inverse_transform(WORLD_IN_ROBOT)
 # Estimated with apriltag_detector.py followed by cam_calibration_optimization.py
-WCAMERA_IN_TCP = np.load(f"{dir_path}/wcamera_tcp_transform.npy", allow_pickle=True)
+WCAMERA_IN_TCP = np.load(f"{dir_path}/utils_data/wcamera_tcp_transform.npy", allow_pickle=True)
 # Recorded with Kinect Tripod.
-WORLD_IN_CAMERA = np.load(f"{dir_path}/world_camera_transform.npy", allow_pickle=True)
+WORLD_IN_CAMERA = np.load(f"{dir_path}/utils_data/world_camera_transform.npy", allow_pickle=True)
 # Recorded with Kinect Tripod.
-CAMERA_IN_ROBOT = np.load(f"{dir_path}/camera_robot_transform.npy", allow_pickle=True)
+CAMERA_IN_ROBOT = np.load(f"{dir_path}/utils_data/camera_robot_transform.npy", allow_pickle=True)
 # Aruco marker for the world, physical measurement.
 WORLD_IN_MARKER = pos_orn_to_matrix([-0.35, -0.04, 0.035], [0, 0, 0.5 * np.pi])
 # Aruco marker for the robot, physical measurement.

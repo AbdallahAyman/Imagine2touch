@@ -33,7 +33,7 @@ from src.utils.utils import (
     filter_reskin,
     search_folder,
 )
-from src.data_collection.utils import (
+from src.utils.data_utils import (
     safety_one,
     safety_two,
     safety_three,

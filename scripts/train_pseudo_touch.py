@@ -2,7 +2,7 @@
 import argparse
 import shutil
 import sys
-from src.data_collection.utils import search_folder
+from src.utils.utils import search_folder
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
@@ -15,14 +15,14 @@ from omegaconf import OmegaConf
 import matplotlib.pyplot as plt
 
 # relative modules
-from src.models.utils import (
+from src.utils.model_utils import (
     preprocess_object_data,
     infer,
     save_tactile,
     train_touch_to_image,
     reorder_shuffled,
 )
-from src.models.models import pseudo_touch_model
+from src.utils.model_models import pseudo_touch_model
 from src.reskin_calibration import dataset
 from src.utils.utils import NotAdaptedError
 
@@ -121,7 +121,7 @@ def load_pseudo_touch_model():
     }
     model = hydra.utils.instantiate(model_instance).to(device)
     model.load_state_dict(
-        torch.load(f"{repo_path}/{cfg.model_path}/{cfg.model_id}/ae_model")
+        torch.load(f"{repo_path}/{cfg.model_path}/{cfg.model_id}/pseudo_touch_model")
     )
     return (
         model,
@@ -329,7 +329,7 @@ if __name__ == "__main__":
             ) as rgb_scaling_quantile_file:
                 dump(scaler_rgb, rgb_scaling_quantile_file)
             # save the model
-            torch.save(model.state_dict(), f"{model_folder}/ae_model")
+            torch.save(model.state_dict(), f"{model_folder}/pseudo_touch_model")
     # save mean_mse_tactile_graph
     if cfg.ablate_embedding:
         np.save(f"{model_folder}/mean_mse_tactile_graph.npy", mean_mse_tactile_graph)

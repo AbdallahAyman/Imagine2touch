@@ -3,8 +3,8 @@
 repository_dir: "pseudo_touch"
 experiment_dir: src/data_collection/data
 test_dir: src/data_collection/data
-out: src/models/Ae_models
-model_path: src/models/Ae_models
+out: src/models/pseudo_touch_models
+model_path: src/models/pseudo_touch_models
 #data set
 objects_names: "hexagon,parallelogram"
 test_objects_names: "cylinder,star"

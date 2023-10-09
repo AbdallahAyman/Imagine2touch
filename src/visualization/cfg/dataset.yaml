@@ -1,7 +1,7 @@
 repo_directory: "pseudo_touch"
 data_path: "src/data_collection/data"
 model_id: 3
-reconstructed_data_path: src/models/Ae_models/${model_id}
+reconstructed_data_path: src/models/pseudo_touch_models/${model_id}
 object_names: flower # single object for data_visualizer
 image_size: 48
 binary: True
