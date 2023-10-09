@@ -3,7 +3,7 @@ import open3d as o3d
 import numpy as np
 import math
 
-from reskin.utils.utils import (
+from src.utils.utils import (
     create_homog_transformation_from_rotation,
     create_rotation_from_normal,
 )

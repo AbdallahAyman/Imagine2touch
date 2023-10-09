@@ -5,9 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
-import reskin.utils.utils as utils
+import src.utils.utils as utils
 from robot_io.cams.realsense.realsense import Realsense
-from reskin.localizers.cam_localizer import (
+from src.localizers.cam_localizer import (
     FrameUtil,
 )  # Used to get transforms in the environment setting
 from robot_io.cams.kinect4.kinect4 import Kinect4

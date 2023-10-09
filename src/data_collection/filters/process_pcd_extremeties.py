@@ -1,8 +1,8 @@
 import os
 import open3d as o3d
 import numpy as np
-from reskin.data_collection.utils import search_folder
-from reskin.task.process_pcd_extremeties import point_cloud_info
+from src.data_collection.utils import search_folder
+from src.task.process_pcd_extremeties import point_cloud_info
 
 if __name__ == "__main__":
     # take object name from user input interactively

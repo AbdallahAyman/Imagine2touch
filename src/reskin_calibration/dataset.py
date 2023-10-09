@@ -102,7 +102,11 @@ class Touch2imageSet(Dataset):
 
 
 def get_reskin_reading(
-    path, binary, raw=False, ambient_every_reading=False, ambient_aggregated=False
+    path,
+    binary,
+    differential_signal=False,
+    ambient_every_reading=False,
+    ambient_aggregated=False,
 ):
     regex = re.compile("experiment_.*_reskin$")
     experiments = []
@@ -127,9 +131,7 @@ def get_reskin_reading(
         )  # eliminate temperatures
     else:
         reskin_reading = np.delete(reskin_reading, [0, 4, 8, 12, 16], 1)
-    if raw:
-        pass
-    else:
+    if differential_signal:
         reskin_reading = subtract_ambient(
             reskin_reading,
             get_ambient_data(
@@ -137,6 +139,8 @@ def get_reskin_reading(
             ),
             ambient_every_contact=ambient_every_reading,
         )
+    else:
+        pass
 
     if len(experiments) == 1:
         return reskin_reading
@@ -164,9 +168,7 @@ def get_reskin_reading(
                 reskin_reading_i = np.delete(
                     reskin_reading_i, [0, 4, 8, 12, 16], 1
                 )  # eliminate temperatures
-            if raw:
-                pass
-            else:
+            if differential_signal:
                 reskin_reading_i = subtract_ambient(
                     reskin_reading_i,
                     get_ambient_data(
@@ -174,6 +176,8 @@ def get_reskin_reading(
                     ),
                     ambient_every_contact=ambient_every_reading,
                 )
+            else:
+                pass
             reskin_reading = np.vstack((reskin_reading, reskin_reading_i))
     return reskin_reading
 
@@ -258,9 +262,9 @@ def get_ambient_data(path, binary, exp=None, aggregated=False):
 
 
 def subtract_ambient(
-    contact, ambient, ambient_every_contact=False, handle_negative=True
+    contact, ambient, ambient_every_contact=False, handle_negative=False
 ):
-    """subtract ambient readings for each batch of 10 readings then as it fits for the last batch
+    """subtract ambient readings either for each batch of 10 readings or for each reading
     ambient: array of ambient readings
     contact: array of contact readings"""
     if ambient.shape[0] == contact.shape[0]:
@@ -293,7 +297,7 @@ def prepare_reskin_data(
     binary,
     mean=None,
     std=None,
-    raw=False,
+    differential_signal=False,
     ambient_every_reading=False,
     ambient_aggregated=False,
     standardize=True,
@@ -304,7 +308,7 @@ def prepare_reskin_data(
     reskin_reading = get_reskin_reading(
         path,
         binary,
-        raw=raw,
+        differential_signal=differential_signal,
         ambient_every_reading=ambient_every_reading,
         ambient_aggregated=ambient_aggregated,
     )

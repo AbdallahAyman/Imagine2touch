@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import numpy as np
 import os
@@ -5,50 +6,63 @@ import hydra
 from omegaconf import OmegaConf
 import matplotlib.pyplot as plt
 from matplotlib import patches
+from src.data_collection.utils import search_folder
 import seaborn as sns
-
-from reskin.visualizations.analyse_reskin import get_reskin_reading
-from reskin.reskin_calibration.dataset import get_ambient_data
+from src.reskin_calibration.dataset import get_ambient_data, get_reskin_reading
 
 
 if __name__ == "__main__":
-    OmegaConf.register_new_resolver("path", lambda x: os.path.abspath(x))
-    hydra.initialize("./conf", version_base=None)
+    hydra.initialize("./cfg", version_base=None)
     cfg = hydra.compose("dataset.yaml")
+    repo_directory = search_folder("/", "pseudo_touch")
     file_tactile = []
     object_names = cfg.object_names.split(",")
     for object_name in object_names:
         file_tactile.append(
-            cfg.data_path + "/" + object_name + "/" + object_name + "_tactile"
+            repo_directory
+            + "/"
+            + cfg.data_path
+            + "/"
+            + object_name
+            + "/"
+            + object_name
+            + "_tactile"
         )
     tactile_input_raw = get_reskin_reading(
         file_tactile,
         cfg.binary,
-        raw=True,
-        raw_ambient=cfg.aggregated_ambient,
-        ambient_every_contact=cfg.ambient_every_contact,
+        differential_signal=False,
+        ambient_aggregated=cfg.aggregated_ambient,
+        ambient_every_reading=cfg.ambient_every_contact,
     )
     ambient_tactile_input = get_ambient_data(
         file_tactile, binary=True, aggregated=cfg.aggregated_ambient
     )
     # Filter tactile data
     ## delete any elements that are tactile 15 dimensional arrays that contains an element not in the range [-500,500]
-    tactile_input_raw = tactile_input_raw[
-        (tactile_input_raw > -500).all(axis=1) & (tactile_input_raw < 500).all(axis=1)
-    ]
+    # tactile_input_raw = tactile_input_raw[
+    #     (tactile_input_raw > -500).all(axis=1) & (tactile_input_raw < 500).all(axis=1)
+    # ]
     minimum_data = tactile_input_raw.min()
     maximum_data = tactile_input_raw.max()
+
     tactile_input = get_reskin_reading(
         file_tactile,
         binary=True,
-        raw=False,
-        raw_ambient=cfg.aggregated_ambient,
-        ambient_every_contact=cfg.ambient_every_contact,
+        differential_signal=True,
+        ambient_aggregated=cfg.aggregated_ambient,
+        ambient_every_reading=cfg.ambient_every_contact,
     )
-    tactile_input = tactile_input[
-        (tactile_input > -500).all(axis=1) & (tactile_input < 500).all(axis=1)
-    ]
+    # tactile_input = tactile_input[
+    #     (tactile_input > -500).all(axis=1) & (tactile_input < 500).all(axis=1)
+    # ]
+
     print(np.min(tactile_input))
+    print(np.max(tactile_input))
+    print(np.mean(tactile_input))
+    print(np.max(tactile_input_raw))
+    print(np.min(tactile_input_raw))
+    print(np.mean(tactile_input_raw))
 
     # create a figure and set of subplots to draw the plots on
     fig, axes = plt.subplots(nrows=4, ncols=4, figsize=(12, 12))

@@ -2,11 +2,11 @@
 import sys
 import time
 import numpy as np
-from reskin.data_collection.utils import safety_three
+from src.data_collection.utils import safety_three
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
 from scipy.spatial.transform import Rotation
 from robot_io.utils.utils import pos_orn_to_matrix, matrix_to_pos_orn, euler_to_quat
-from reskin.utils.utils import (
+from src.utils.utils import (
     WCAMERA_IN_TCP,
     euler_from_vector,
     WORLD_IN_ROBOT,

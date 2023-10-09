@@ -2,7 +2,7 @@
 from pathlib import Path
 import numpy as np
 import cv2
-from reskin.task.save_pcds_extra_views import custom_wait
+from src.task.save_pcds_extra_views import custom_wait
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
 import rospy
 import hydra
@@ -13,7 +13,7 @@ import sys
 
 # Import repo modules
 from robot_io.cams.realsense.realsense import Realsense
-from reskin.utils.utils import (
+from src.utils.utils import (
     WORLD_IN_ROBOT,
     FIXED_ROBOT_ORN,
     eulertoquat,
@@ -21,7 +21,7 @@ from reskin.utils.utils import (
 from robot_io.cams.realsense.realsense import Realsense
 from robot_io.marker_detection.core.board_detector import BoardDetector
 from robot_io.marker_detection.core.tag_pose_estimator import TagPoseEstimator
-from reskin.localizers.wrist_camera_localizer import (
+from src.localizers.wrist_camera_localizer import (
     generate_step_pos,
     generate_step_orientation,
 )

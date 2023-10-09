@@ -1,6 +1,6 @@
 import numpy as np
 import cv2
-from reskin.utils.utils import get_target_images, rgb2gray
+from src.utils.utils import get_target_images, rgb2gray
 from tqdm import tqdm
 
 

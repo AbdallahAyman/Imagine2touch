@@ -3,9 +3,9 @@ import hydra
 from omegaconf import OmegaConf
 import numpy as np
 import cv2
-from reskin.utils.utils import get_target_images, get_depth_processed, get_target_masks
-from reskin.reskin_calibration import dataset
-from reskin.visualizations.reskin_image_visualizer import (
+from src.utils.utils import get_target_images, get_depth_processed, get_target_masks
+from src.reskin_calibration import dataset
+from src.visualizations.reskin_image_visualizer import (
     visualize_reskin_image,
 )
 import sys

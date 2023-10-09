@@ -1,5 +1,5 @@
 # Specific modules
-from reskin.localizers.cam_localizer import (
+from src.localizers.cam_localizer import (
     FrameUtil,
 )  # Used to get transforms in the environment setting
 from test_point_cloud_filter import (
@@ -7,10 +7,10 @@ from test_point_cloud_filter import (
     point_cloud_info,
     mask_rgb_and_dep,
 )
-from reskin.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
+from src.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
 from robot_io.cams.realsense.realsense import Realsense
-from reskin.utils import (
+from src.utils import (
     add_ee,
     FIXED_ROBOT_ORN,
     inverse_transform,
@@ -199,16 +199,14 @@ if __name__ == "__main__":
     frame_util = FrameUtil(robot)
     frame_util.start()
     rgb, dep = frame_util.camera.get_image()
-    while (
-        frame_util._T_camera_in_robot is None or frame_util._T_socket_in_robot is None
-    ):
+    while frame_util._T_camera_in_robot is None or frame_util._T_world_in_robot is None:
         print("transform is none")
         continue
     print("transform calculated")
     T_world_in_camera = inverse_transform(
-        frame_util.T_robot_in_socket.dot(frame_util._T_camera_in_robot)
+        frame_util.T_robot_in_world.dot(frame_util._T_camera_in_robot)
     )
-    WORLD_IN_ROBOT = frame_util.T_socket_in_robot
+    WORLD_IN_ROBOT = frame_util.T_world_in_robot
     pcd = convert_image_to_point_cloud(
         "kinect",
         rgb,

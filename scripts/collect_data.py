@@ -4,13 +4,13 @@ if False:
     from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
     from robot_io.cams.realsense.realsense import Realsense
     from robot_io.utils.utils import pos_orn_to_matrix
-    from reskin.task.save_pcds_extra_views import wait_until_stable_joint_velocities
-    from reskin.localizers.wrist_camera_localizer import (
+    from src.task.save_pcds_extra_views import wait_until_stable_joint_velocities
+    from src.localizers.wrist_camera_localizer import (
         generate_step_orientation,
         generate_step_pos,
     )
-from reskin.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
-from reskin.utils.utils import (
+from src.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
+from src.utils.utils import (
     FIXED_ROBOT_ORN,
     ROBOT_IN_WORLD,
     WORLD_IN_ROBOT,
@@ -30,7 +30,7 @@ from reskin.utils.utils import (
     debounce_tcp_pose,
     filter_reskin,
 )
-from reskin.data_collection.utils import (
+from src.data_collection.utils import (
     safety_one,
     safety_two,
     safety_three,

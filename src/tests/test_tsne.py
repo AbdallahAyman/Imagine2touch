@@ -22,8 +22,8 @@ from matplotlib.colors import Normalize
 from matplotlib import colors as normcolors
 
 # repo modules
-from reskin.models.utils import preprocess_object_data
-from reskin.visualizations.reskin_image_visualizer import (
+from src.models.utils import preprocess_object_data
+from src.visualizations.reskin_image_visualizer import (
     plot_combined_heatmap,
     split_rgb,
     visualize_reskin_image,
@@ -156,9 +156,6 @@ if __name__ == "__main__":
         std_reskin,
         target_masks,
     ) = preprocess_object_data(cfg, cfg.objects_names)
-    print("tactile_input", tactile_input.shape)
-    print("target_images", target_images.shape)
-    print("target_masks", target_masks.shape)
     target_masks = (
         target_masks.cpu().numpy().reshape(-1, cfg.image_size[0], cfg.image_size[1])
     )
@@ -249,7 +246,6 @@ if __name__ == "__main__":
         tactile_heatmap = tactile_heatmaps[j]
         # plot individual points
         for i, (x, y) in enumerate(cluster_points):
-
             if any(np.array_equal([x, y], arr) for arr in selected_points) or (
                 i == cluster_points.shape[0] - 1
             ):

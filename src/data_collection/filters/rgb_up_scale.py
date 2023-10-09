@@ -1,7 +1,7 @@
 from PIL import Image
 import os
 import hydra
-from reskin.data_collection.utils import search_folder
+from src.data_collection.utils import search_folder
 
 if __name__ == "__main__":
     # script meta data, configuration and constants

@@ -2,7 +2,7 @@
 import argparse
 import shutil
 import sys
-from reskin.data_collection.utils import search_folder
+from src.data_collection.utils import search_folder
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
@@ -15,16 +15,16 @@ from omegaconf import OmegaConf
 import matplotlib.pyplot as plt
 
 # relative modules
-from reskin.models.utils import (
+from src.models.utils import (
     preprocess_object_data,
-    prepocess_task_data,
     infer,
+    save_tactile,
     train_touch_to_image,
     reorder_shuffled,
 )
-from reskin.models.models import AE
-from reskin.reskin_calibration import dataset
-from reskin.utils.utils import NotAdaptedError
+from src.models.models import pseudo_touch_model
+from src.reskin_calibration import dataset
+from src.utils.utils import NotAdaptedError
 
 
 def parse_arguments():
@@ -44,7 +44,7 @@ def parse_arguments():
     return args
 
 
-def parse_configs():
+def parse_configs(cfg, cfg_masks):
     cfg_masks = cfg_masks.masks
     cfg.image_size = [int(cfg.image_size), int(cfg.image_size)]
     test_objects_array = cfg.test_objects_names.split(",")
@@ -72,22 +72,91 @@ def init_config():
     )
     OmegaConf.register_new_resolver("rgb_gray_factor", lambda x: 1 if x else 3)
     # load script configurations
-    hydra.initialize("./conf", version_base=None)
+    hydra.initialize("../src/models/cfg", version_base=None)
     cfg = hydra.compose("trainae.yaml")
     cfg_masks = hydra.compose("generate_masks.yaml")
     return cfg, cfg_masks
 
 
+def load_pseudo_touch_model():
+    mean_reskin = np.load(
+        f"{repo_path}/{cfg.model_path}/{cfg.model_id}/reskin_scaling_mean.npy",
+        allow_pickle=True,
+    )
+    std_reskin = np.load(
+        f"{repo_path}/{cfg.model_path}/{cfg.model_id}/reskin_scaling_std.npy",
+        allow_pickle=True,
+    )
+    mean_images = np.load(
+        f"{repo_path}/{cfg.model_path}/{cfg.model_id}/images_scaling_mean.npy",
+        allow_pickle=True,
+    )
+    std_images = np.load(
+        f"{repo_path}/{cfg.model_path}/{cfg.model_id}/images_scaling_std.npy",
+        allow_pickle=True,
+    )
+    scaler_reskin = load(
+        open(
+            f"{repo_path}/{cfg.model_path}/{cfg.model_id}/reskin_scaling_quantile.pkl",
+            "rb",
+        )
+    )
+    scaler_images = load(
+        open(
+            f"{repo_path}/{cfg.model_path}/{cfg.model_id}/images_scaling_quantile.pkl",
+            "rb",
+        )
+    )
+    scaler_rgb = load(
+        open(
+            f"{repo_path}/{cfg.model_path}/{cfg.model_id}/rgb_scaling_quantile.pkl",
+            "rb",
+        )
+    )
+    # initialize and load model with trainae.yaml parameters, only __target__  is required from model.yaml
+    model_instance = hydra.compose("model.yaml")
+    model_instance = {
+        key: cfg.model[key] if key in cfg.model else model_instance[key]
+        for key in model_instance
+    }
+    model = hydra.utils.instantiate(model_instance).to(device)
+    model.load_state_dict(
+        torch.load(f"{repo_path}/{cfg.model_path}/{cfg.model_id}/ae_model")
+    )
+    return (
+        model,
+        scaler_images,
+        scaler_rgb,
+        scaler_reskin,
+        mean_images,
+        std_images,
+        mean_reskin,
+        std_reskin,
+    )
+
+
 if __name__ == "__main__":
+    # parse arguments and configurations
     args = parse_arguments()
     cfg, cfg_masks = init_config()
     repo_path = search_folder("/", cfg.repository_dir)
-    cfg, cfg_masks, test_objects_string = parse_configs()
-
+    cfg, cfg_masks, test_objects_string = parse_configs(cfg, cfg_masks)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # data preprocessing and loading for training
-    if not cfg.inference:
-        # get data and scaling parameters
+
+    # infer using a saved model or train a new one
+    if cfg.inference:
+        (
+            model,
+            scaler_images,
+            scaler_rgb,
+            scaler_reskin,
+            mean_images,
+            std_images,
+            mean_reskin,
+            std_reskin,
+        ) = load_pseudo_touch_model()
+    else:
+        # create training loader
         (
             scaler_images,
             scaler_rgb,
@@ -102,8 +171,7 @@ if __name__ == "__main__":
             mean_reskin,
             std_reskin,
             target_masks_train,
-        ) = preprocess_object_data(cfg, repo_path, cfg.objects_names)
-        # create training loader
+        ) = preprocess_object_data(cfg, repo_path)
         TrainSet = dataset.Touch2imageSet(
             tactile_input_train,
             tactile_targets_train,
@@ -112,108 +180,53 @@ if __name__ == "__main__":
             target_masks_train,
         )
         train_loader = DataLoader(TrainSet, batch_size=cfg.parameters.bs, shuffle=True)
-    # model and scaling parameters loading for inference and validation
-    else:
-        # load scaling parameters
-        mean_reskin = np.load(
-            f"{cfg.model_path}/{cfg.model_id}/reskin_scaling_mean.npy",
-            allow_pickle=True,
-        )
-        std_reskin = np.load(
-            f"{cfg.model_path}/{cfg.model_id}/reskin_scaling_std.npy", allow_pickle=True
-        )
-        mean_images = np.load(
-            f"{cfg.model_path}/{cfg.model_id}/images_scaling_mean.npy",
-            allow_pickle=True,
-        )
-        std_images = np.load(
-            f"{cfg.model_path}/{cfg.model_id}/images_scaling_std.npy", allow_pickle=True
-        )
-        scaler_reskin = load(
-            open(f"{cfg.model_path}/{cfg.model_id}/reskin_scaling_quantile.pkl", "rb")
-        )
-        scaler_images = load(
-            open(f"{cfg.model_path}/{cfg.model_id}/images_scaling_quantile.pkl", "rb")
-        )
-        scaler_rgb = load(
-            open(f"{cfg.model_path}/{cfg.model_id}/rgb_scaling_quantile.pkl", "rb")
-        )
-        # initialize and load model with trainae.yaml parameters, only __target__  is required from model.yaml
-        model_instance = hydra.compose("model.yaml")
-        model_instance = {
-            key: cfg.model[key] if key in cfg.model else model_instance[key]
-            for key in model_instance
-        }
-        model = hydra.utils.instantiate(model_instance).to(device)
-        model.load_state_dict(torch.load(f"{cfg.model_path}/{cfg.model_id}/ae_model"))
-    # data preprocessing and loading for inference and validation
-    if not cfg.offline_task:
-        # get test RobustRescalerand validation data with the training scaling parameters
-        (
-            tactile_targets_test,
-            image_targets_test,
-            tactile_input_test,
-            rgb_images_test,
-            target_masks_test,
-            preprocessing_indeces_list_test,
-            tactile_targets_validation,
-            image_targets_validation,
-            tactile_input_validation,
-            rgb_images_validation,
-            target_masks_validation,
-            preprocessing_indeces_list_validation,
-        ) = preprocess_object_data(
-            cfg,
-            cfg.test_objects_names,
-            mean_images,
-            std_images,
-            mean_reskin,
-            std_reskin,
-            scaler_images,
-            scaler_rgb,
-            scaler_reskin,
-            train=False,
-        )
-        # remove a potential extra dimension from the preprocessing indeces list
-        preprocessing_indeces_list_test = np.squeeze(preprocessing_indeces_list_test)
-        # create test and validation sets
-        TestSet = dataset.Touch2imageSet(
-            tactile_input_test,
-            tactile_targets_test,
-            image_targets_test,
-            rgb_images_test,
-            target_masks_test,
-            task=cfg.offline_task,
-        )
-        ValidationSet = dataset.Touch2imageSet(
-            tactile_input_validation,
-            tactile_targets_validation,
-            image_targets_validation,
-            rgb_images_validation,
-            target_masks_validation,
-            task=cfg.offline_task,
-        )
-    else:
-        raise NotAdaptedError(
-            "offline task testing is not adapted for current version of code"
-        )
-        (
-            tactile_targets_test,
-            tactile_input_test,
-            preprocessing_indeces_list,
-        ) = prepocess_task_data(
-            cfg,
-            cfg.test_objects_names,
-            mean_reskin=mean_reskin,
-            std_reskin=std_reskin,
-            scaler_reskin=scaler_reskin,
-        )
-        TestSet = dataset.Touch2imageSet(
-            tactile_input_test, tactile_targets_test, task=cfg.offline_task
-        )
+    # create test loader
+    (
+        tactile_targets_test,
+        image_targets_test,
+        tactile_input_test,
+        rgb_images_test,
+        target_masks_test,
+        preprocessing_indeces_list_test,
+        tactile_targets_validation,
+        image_targets_validation,
+        tactile_input_validation,
+        rgb_images_validation,
+        target_masks_validation,
+        preprocessing_indeces_list_validation,
+    ) = preprocess_object_data(
+        cfg,
+        repo_path,
+        mean_images,
+        std_images,
+        mean_reskin,
+        std_reskin,
+        scaler_images,
+        scaler_rgb,
+        scaler_reskin,
+        train=False,
+    )
+    TestSet = dataset.Touch2imageSet(
+        tactile_input_test,
+        tactile_targets_test,
+        image_targets_test,
+        rgb_images_test,
+        target_masks_test,
+        task=cfg.offline_task,
+    )
+    ValidationSet = dataset.Touch2imageSet(
+        tactile_input_validation,
+        tactile_targets_validation,
+        image_targets_validation,
+        rgb_images_validation,
+        target_masks_validation,
+        task=cfg.offline_task,
+    )
     # create test and validation loaders
     test_loader = DataLoader(TestSet, batch_size=cfg.parameters.bs, shuffle=True)
-    if not cfg.inference:
+    if cfg.inference:
+        pass
+    else:
         validation_loader = DataLoader(
             ValidationSet, batch_size=cfg.parameters.bs, shuffle=True
         )
@@ -260,7 +273,7 @@ if __name__ == "__main__":
                 pass
             else:
                 cfg.model.image_embedding_dim = n
-            model = AE(**cfg.model).to(device)
+            model = pseudo_touch_model(**cfg.model).to(device)
             print(model)
             (
                 model,
@@ -286,22 +299,6 @@ if __name__ == "__main__":
                 device,
                 model_folder=model_folder,
             )
-
-            # AutoML #TODO: make this usable
-            # def train_evaluate(parameters=None):
-            #     model = AE(**cfg.model).to(device)
-            #     model,_,_,_,_,_,_,_,_=train_touch_to_image(model,train_loader,cfg,cfg_masks,device,parameters,autoML=False)
-            #     torch.save(model.state_dict(), f'{model_folder}/ae_model')
-            #     return {'mse': evaluate (model,test_loader,device,infer,cfg)}
-
-            # best_parameters, values, experiment, model = optimize(
-            # parameters=[
-            #     {"name": "lr", "type": "range", "bounds": [1e-6, 0.4], "log_scale": True},
-            # ],
-            # evaluation_function=train_evaluate,
-            # objective_name='mse',
-            # )
-
             # save scaling parameters
             with open(
                 f"{model_folder}/reskin_scaling_mean.npy", "wb"
@@ -347,8 +344,6 @@ if __name__ == "__main__":
     # # empty lists to fill with test data
     original_target_images = None
     original_rgb_images = None
-    depth_reconstructions = []
-    rgb_reconstructions = []
     loader_indeces_list = []
     # inference loop
     with torch.no_grad():
@@ -358,8 +353,6 @@ if __name__ == "__main__":
             original_target_images,
             original_target_masks,
             tactile_reconstructions,
-            depth_reconstructions,
-            rgb_reconstructions,
             masks_reconstructions,
             loader_indeces_list,
         ) = infer(model, cfg, device, test_loader)
@@ -373,20 +366,11 @@ if __name__ == "__main__":
         masks_reconstructions = torch.where(
             masks_reconstructions > cfg.masks_threshold, 1.0, 0
         )
-        depth_reconstructions = reorder_shuffled(
-            depth_reconstructions, loader_indeces_list, preprocessing_indeces_list_test
-        )
         tactile_reconstructions = reorder_shuffled(
             tactile_reconstructions,
             loader_indeces_list,
             preprocessing_indeces_list_test,
         )
-        if rgb_reconstructions is not None:
-            rgb_reconstructions = reorder_shuffled(
-                rgb_reconstructions,
-                loader_indeces_list,
-                preprocessing_indeces_list_test,
-            )
         original_target_masks = reorder_shuffled(
             original_target_masks, loader_indeces_list, preprocessing_indeces_list_test
         )

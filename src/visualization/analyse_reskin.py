@@ -1,6 +1,10 @@
 import matplotlib.cm as cm
 import numpy as np
-from reskin.reskin_calibration.dataset import get_ambient_data, subtract_ambient
+from src.reskin_calibration.dataset import (
+    get_ambient_data,
+    get_reskin_reading,
+    subtract_ambient,
+)
 import numpy as np
 import re
 import os
@@ -10,91 +14,6 @@ from omegaconf import OmegaConf
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-
-
-def get_reskin_reading(
-    path,
-    binary,
-    raw=True,
-    raw_ambient=False,
-    ambient_every_contact=False,
-    handle_negative=True,
-):
-    """raw: don't subtract ambient from signal
-    raw_ambient: ambient data was already processed during collection"""
-    regex = re.compile("experiment_.*_reskin$")
-    experiments = []
-    for p in path:
-        for root, dirs, files in os.walk(p):
-            for file in files:
-                if regex.match(file):
-                    experiments.append(p + "/" + file)
-    first_path = path[0]
-    experiments = np.asarray(natsort.natsorted(experiments))
-
-    # store and pre-process first experiment
-    reskin_reading = np.load(experiments[0], allow_pickle=True)
-    reskin_reading = np.squeeze(reskin_reading)[
-        :, 2
-    ]  # extract lists of magnetometers values and temperatures as array of lists
-    reskin_reading = list(reskin_reading)  # convert to list of lists then to nd array
-    reskin_reading = np.asarray(reskin_reading)
-    if binary == "False":
-        reskin_reading = np.delete(
-            reskin_reading, [3, 7, 11, 15, 19], 1
-        )  # eliminate temperatures
-    else:
-        reskin_reading = np.delete(reskin_reading, [0, 4, 8, 12, 16], 1)
-    if raw:
-        pass
-    else:
-        reskin_reading = subtract_ambient(
-            reskin_reading,
-            get_ambient_data(
-                first_path, binary, experiments[0] + "_ambient", aggregated=raw_ambient
-            ),
-            ambient_every_contact=ambient_every_contact,
-            handle_negative=handle_negative,
-        )
-    if len(experiments) == 1:
-        return reskin_reading
-
-    for counter, experiment in enumerate(experiments):
-        if counter == 0:
-            continue
-        else:
-            reskin_reading_i = np.load(experiment, allow_pickle=True)
-            if reskin_reading_i.shape[0] > 1:
-                reskin_reading_i = np.squeeze(reskin_reading_i)[
-                    :, 2
-                ]  # extract lists of magnetometers values and temperatures as array of lists
-            else:
-                reskin_reading_i = np.squeeze(reskin_reading_i)[2]
-            reskin_reading_i = list(
-                reskin_reading_i
-            )  # convert to list of lists then to nd array
-            reskin_reading_i = np.asarray(reskin_reading_i).reshape(-1, 20)
-            if binary == "False":
-                reskin_reading_i = np.delete(
-                    reskin_reading_i, [3, 7, 11, 15, 19], 1
-                )  # eliminate temperatures
-            else:
-                reskin_reading_i = np.delete(
-                    reskin_reading_i, [0, 4, 8, 12, 16], 1
-                )  # eliminate temperatures
-            if raw:
-                pass
-            else:
-                reskin_reading_i = subtract_ambient(
-                    reskin_reading_i,
-                    get_ambient_data(
-                        path, binary, experiment + "_ambient", aggregated=raw_ambient
-                    ),
-                    ambient_every_contact=ambient_every_contact,
-                    handle_negative=handle_negative,
-                )
-            reskin_reading = np.vstack((reskin_reading, reskin_reading_i))
-    return reskin_reading
 
 
 if __name__ == "__main__":
@@ -112,17 +31,10 @@ if __name__ == "__main__":
     tactile_input = get_reskin_reading(
         file_tactile,
         binary=True,
-        raw=False,
+        differential_signal=False,
         raw_ambient=cfg.aggregated_ambient,
-        ambient_every_contact=cfg.ambient_every_contact,
-        handle_negative=cfg.handle_negative_data,
+        ambient_every_reading=cfg.ambient_every_contact,
     )
-
-    # Filter tactile data
-    ## delete any elements that are tactile 15 dimensional arrays that contains an element not in the range [-200,200]
-    tactile_input = tactile_input[
-        (tactile_input > -200).all(axis=1) & (tactile_input < 200).all(axis=1)
-    ]
 
     # plot configuration initialization
     num_samples, num_dimensions = tactile_input.shape

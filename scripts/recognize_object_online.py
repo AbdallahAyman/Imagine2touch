@@ -2,8 +2,8 @@
 import argparse
 import math
 import sys
-from reskin.task.utils.utils import mask_from_depth_mesh, normalize_p, update_po
-from reskin.utils.utils import (
+from src.task.utils.utils import mask_from_depth_mesh, normalize_p, update_po
+from src.utils.utils import (
     load_normals,
     safety_one,
     safety_two,
@@ -24,8 +24,8 @@ from reskin.utils.utils import (
     WCAMERA_IN_TCP,
     inverse_transform,
 )
-from reskin.task.reconstruct_pcd import get_crops
-from reskin.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
+from src.task.reconstruct_pcd import get_crops
+from src.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
 
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
 from robot_io.utils.utils import pos_orn_to_matrix

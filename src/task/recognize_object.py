@@ -1,8 +1,8 @@
 # Specific modules
-from reskin.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
+from src.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
 from robot_io.utils.utils import pos_orn_to_matrix
-from reskin.utils.utils import (
+from src.utils.utils import (
     FIXED_ROBOT_ORN,
     eulertoquat,
     move_to_pt_with_v_safe,

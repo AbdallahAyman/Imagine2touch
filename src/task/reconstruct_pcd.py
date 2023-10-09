@@ -1,6 +1,6 @@
 import hydra
 from omegaconf import OmegaConf
-from reskin.utils.utils import (
+from src.utils.utils import (
     get_target_images,
     convert_image_to_point_cloud,
     point_cloud_info,

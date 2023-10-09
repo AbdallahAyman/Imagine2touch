@@ -2,7 +2,7 @@ import sys
 from scipy.optimize import minimize, rosen, rosen_der
 from robot_io.utils.utils import pos_orn_to_matrix, matrix_to_pos_orn, matrix_to_orn
 import numpy as np
-from reskin.utils.utils import inverse_transform, WORLD_IN_ROBOT
+from src.utils.utils import inverse_transform, WORLD_IN_ROBOT
 from omegaconf import OmegaConf
 import hydra
 import os

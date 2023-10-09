@@ -1,7 +1,7 @@
 # repo modules
-from reskin.utils.utils import cropND
-from reskin.models.generate_gt_masks import mask_far_pixels
-from reskin.models.depth_correction_utils import apply_depth_correction
+from src.utils.utils import cropND
+from src.models.generate_gt_masks import mask_far_pixels
+from src.models.depth_correction_utils import apply_depth_correction
 from robot_io.cams.realsense.realsense import Realsense
 
 # standard libraries

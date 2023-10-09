@@ -36,7 +36,7 @@ TOOL_OFFSET_IN_TCP = [0, 0, 0.057, 0]
 # nice orientation of TCP, 180 degrees around y axis to face the tcp towards the earth, given the robot's frame is coincident with the earth's frame
 FIXED_ROBOT_ORN = [0, np.pi, 0]
 # Recorded with Kinect Tripod to capture the raised object placeholder on the table frame. Change to suit your setup.
-# WORLD_IN_ROBOT = np.load(f"{dir_path}/socket_robot_transform.npy", allow_pickle=True)
+# WORLD_IN_ROBOT = np.load(f"{dir_path}/world_robot_transform.npy", allow_pickle=True)
 WORLD_IN_ROBOT = np.asarray(
     [
         [1, 0, 0, 0.427],
@@ -49,18 +49,18 @@ ROBOT_IN_WORLD = inverse_transform(WORLD_IN_ROBOT)
 # Estimated with apriltag_detector.py followed by cam_calibration_optimization.py
 WCAMERA_IN_TCP = np.load(f"{dir_path}/wcamera_tcp_transform.npy", allow_pickle=True)
 # Recorded with Kinect Tripod.
-WORLD_IN_CAMERA = np.load(f"{dir_path}/socket_camera_transform.npy", allow_pickle=True)
+WORLD_IN_CAMERA = np.load(f"{dir_path}/world_camera_transform.npy", allow_pickle=True)
 # Recorded with Kinect Tripod.
 CAMERA_IN_ROBOT = np.load(f"{dir_path}/camera_robot_transform.npy", allow_pickle=True)
-# Aruco marker for the socket, physical measurement.
-SOCKET_IN_MARKER = pos_orn_to_matrix([-0.35, -0.04, 0.035], [0, 0, 0.5 * np.pi])
+# Aruco marker for the world, physical measurement.
+WORLD_IN_MARKER = pos_orn_to_matrix([-0.35, -0.04, 0.035], [0, 0, 0.5 * np.pi])
 # Aruco marker for the robot, physical measurement.
 ROBOT_IN_MARKER = pos_orn_to_matrix([-0.108, 0.145, 0], [0, 0, 0])
 # change to suit where you want the robot to move away
 AWAY_POSE = [0.45, 0.1, 0.2]
 # change to suit where you want the robot to start from
 HOME_POSE = [0.45, 0, 0.1]
-# Views in the robot frame chosen to cover different areas of the object, that is placed on the socket placeholder in our setting,
+# Views in the robot frame chosen to cover different areas of the object, that is placed on the world placeholder in our setting,
 # They will have similar size of points in the presence of calibration errors, also accounting for robot's singularities
 VIEWS = [
     [0.37, 0, 0.1],
@@ -437,7 +437,7 @@ def move_to_pt_with_v_safe(
             ):
                 print("won't make a contact with an object")
                 return 4, robot.get_state(), None, ambient_recording
-            # Allow robot flange to be minimally 6 cm (height of the socket holder) bleow the world height (z-axis), robot flange dimensions from the tcp hardcoded
+            # Allow robot flange to be minimally 6 cm (height of the world holder) bleow the world height (z-axis), robot flange dimensions from the tcp hardcoded
             if not safety_three(
                 current_tcp_in_robot_pos, goal_rot, [0.015, 0.09, 0.058], -0.06
             ):
@@ -864,10 +864,17 @@ def crop_center(img, cropx, cropy):
 
 def get_target_images(path, type, size, reconstructed=False, target_masks=None):
     if type == "masks" and not reconstructed:
+        path = [p + "masks" for p in path]
         return get_target_masks(path, size)
-    elif (type == "processed_depth" or "masked_depth_processed") and not reconstructed:
-        path = [p.replace("depth", "depth_processed") for p in path]
+    elif (
+        type == "processed_depth" or type == "masked_depth_processed"
+    ) and not reconstructed:
+        path = [p + "depth_processed" for p in path]
         return get_depth_processed(path, size)
+    elif type == "depth" and not reconstructed:
+        path = [p + "depth" for p in path]
+    else:
+        pass
     regex = re.compile(f"experiment_.*_{type}_.*")
     images = []
     for p in path:

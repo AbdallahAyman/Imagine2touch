@@ -138,3 +138,6 @@ src/visualization/data
 src/utils/data
 src/visualizations/data
 
+# add wandb to gitignore
+wandb
+

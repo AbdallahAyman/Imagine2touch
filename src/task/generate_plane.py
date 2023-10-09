@@ -1,4 +1,4 @@
-import reskin.utils.utils as utils
+import src.utils.utils as utils
 import numpy as np
 
 if __name__ == "__main__":

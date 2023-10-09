@@ -10,8 +10,8 @@ import os
 
 
 # repo modules
-from reskin.reskin_sensor import ReSkinBase
-from reskin.reskin_calibration import dataset
+from src.reskin_sensor import ReSkinBase
+from src.reskin_calibration import dataset
 
 
 def init_pygame():

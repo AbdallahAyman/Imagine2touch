@@ -4,7 +4,7 @@ from argparse import ArgumentParser
 import hydra
 from omegaconf import OmegaConf
 
-from reskin.utils.utils import segment_point_cloud
+from src.utils.utils import segment_point_cloud
 
 if __name__ == "__main__":
     dir_path = os.path.dirname(os.path.realpath(__file__))

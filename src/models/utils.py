@@ -19,14 +19,14 @@ import torchvision
 
 
 # repo modules
-from reskin.utils.utils import (
+from src.utils.utils import (
     NotAdaptedError,
     get_target_images,
     rgb2gray,
     get_target_masks,
     get_depth_processed,
 )
-from reskin.reskin_calibration import dataset
+from src.reskin_calibration import dataset
 
 
 def save_tactile(
@@ -222,119 +222,62 @@ def infer(
     original_images_list=[],
     original_rgb_list=[],
     original_masks_list=[],
-    depth_reconstructions=[],
-    rgb_reconstructions=[],
     loader_indeces_list=[],
     masks_reconstructions=[],
     tactile_reconstructions=[],
 ):
-    if cfg.model.encode_tactile:
-        model.connect_image_encoder_in_encode_image = False
-        if cfg.model.encode_image:
-            model.connect_tactile_encoder_in_encode_image = False
-            model.connect_image_encoder_in_encode_image = True
-    if not cfg.offline_task:
-        for (
-            batch_tactile_features,
-            _,
-            batch_target_images,
-            batch_rgb_images,
-            batch_target_masks,
-            loader_indeces,
-        ) in test_loader:
-            original_tactile = batch_tactile_features.to(device)
-            if cfg.model.cnn_images_encoder:
-                original_target_images = batch_target_images.view(
-                    -1, cfg.image_size[0], cfg.image_size[1], cfg.image_factor
-                ).to(device)
-                original_target_masks = batch_target_masks.view(
-                    -1, cfg.image_size[0], cfg.image_size[1], 1
-                ).to(device)
-                original_target_images = original_target_images.permute(0, 3, 1, 2)
-                original_target_masks = original_target_masks.permute(0, 3, 1, 2)
-            else:
-                original_target_images = batch_target_images.view(
-                    -1, cfg.image_size[0] * cfg.image_size[1] * cfg.image_factor
-                ).to(device)
-                if not cfg.classification:
-                    original_target_masks = batch_target_masks.view(
-                        -1, cfg.image_size[0] * cfg.image_size[1]
-                    ).to(device)
-                else:
-                    original_target_masks = batch_target_masks.to(device)
-            original_rgb_images = batch_rgb_images.view(
-                -1, cfg.image_size[0] * cfg.image_size[1] * cfg.rgb_gray_factor
+    for (
+        batch_tactile_features,
+        _,
+        batch_target_images,
+        batch_rgb_images,
+        batch_target_masks,
+        loader_indeces,
+    ) in test_loader:
+        original_tactile = batch_tactile_features.to(device)
+        if cfg.model.cnn_images_encoder:
+            original_target_images = batch_target_images.view(
+                -1, cfg.image_size[0], cfg.image_size[1], 1
             ).to(device)
-            original_images_list.append(original_target_images)
-            original_rgb_list.append(original_rgb_images)
-            original_masks_list.append(original_target_masks)
-            original_tactile_list.append(original_tactile)
-
-            if cfg.model.aux_reconstruction:
-                (
-                    tactile_reconstruction,
-                    depth_reconstruction,
-                    mask_reconstruction,
-                    _,
-                    _,
-                ) = model(original_tactile, original_target_masks)
-                depth_reconstructions.append(depth_reconstruction)
-                loader_indeces_list.append(loader_indeces)
-                masks_reconstructions.append(mask_reconstruction)
-                tactile_reconstructions.append(tactile_reconstruction)
+            original_target_masks = batch_target_masks.view(
+                -1, cfg.image_size[0], cfg.image_size[1], 1
+            ).to(device)
+            original_target_images = original_target_images.permute(0, 3, 1, 2)
+            original_target_masks = original_target_masks.permute(0, 3, 1, 2)
+        else:
+            original_target_images = batch_target_images.view(
+                -1, cfg.image_size[0] * cfg.image_size[1] * 1
+            ).to(device)
+            if not cfg.classification:
+                original_target_masks = batch_target_masks.view(
+                    -1, cfg.image_size[0] * cfg.image_size[1]
+                ).to(device)
             else:
-                raise NotAdaptedError(
-                    "Depth only inference is not handeled in this version."
-                )
-                depth_reconstruction = model(original_tactile)
-    else:
-        raise NotAdaptedError("task inference not adapted to current version")
-    if cfg.model.encode_tactile:
-        model.connect_image_encoder_in_encode_image = True
-        if cfg.model.encode_image:
-            model.connect_tactile_encoder_in_encode_image = True
+                original_target_masks = batch_target_masks.to(device)
+        original_rgb_images = batch_rgb_images.view(
+            -1, cfg.image_size[0] * cfg.image_size[1] * 3
+        ).to(device)
+        original_images_list.append(original_target_images)
+        original_rgb_list.append(original_rgb_images)
+        original_masks_list.append(original_target_masks)
+        original_tactile_list.append(original_tactile)
+        (
+            tactile_reconstruction,
+            mask_reconstruction,
+            _,
+        ) = model(original_target_masks)
+        loader_indeces_list.append(loader_indeces)
+        masks_reconstructions.append(mask_reconstruction)
+        tactile_reconstructions.append(tactile_reconstruction)
     return (
         original_tactile_list,
         original_rgb_list,
         original_images_list,
         original_masks_list,
         tactile_reconstructions,
-        depth_reconstructions,
-        None,
         masks_reconstructions,
         loader_indeces_list,
     )
-
-
-def prepocess_task_data(
-    cfg,
-    objects_names,
-    mean_reskin=None,
-    std_reskin=None,
-    scaler_images=None,
-    scaler_rgb=None,
-    scaler_reskin=None,
-    train=True,
-):
-    objects_names = objects_names.split(",")
-    path_reskin = []
-    for p in objects_names:
-        path_reskin.append(f"{cfg.test_dir}/{p}/{p}_tactile")
-    tactile_input, tactile_targets = dataset.prepare_reskin_data(
-        path_reskin, cfg.binary, mean_reskin, std_reskin
-    )
-    tactile_targets = scaler_reskin.transform(tactile_targets)
-    tactile_input = scaler_reskin.transform(tactile_input)
-    data = np.hstack((tactile_input, tactile_targets))
-    data = list(enumerate(data))
-    np.random.shuffle(data)
-    indices, data = zip(*data)
-    data = np.asarray(data, dtype=object)
-    tactile_input = torch.FloatTensor(data[:, : cfg.model.tactile_input_shape])
-    tactile_targets = torch.FloatTensor(
-        data[:, cfg.model.tactile_input_shape : cfg.model.tactile_input_shape * 2]
-    )
-    return tactile_targets, tactile_input, indices
 
 
 def reorder_shuffled(array, *args):
@@ -344,10 +287,55 @@ def reorder_shuffled(array, *args):
     return array
 
 
+def fetch_data(cfg, repo_path, train=True):
+    if train:
+        objects_names = cfg.objects_names.split(",")
+    else:
+        objects_names = cfg.test_objects_names.split(",")
+    paths_rgbs = []
+    paths_target_images = []
+    paths_reskin = []
+    paths_masks = []
+    for o in objects_names:
+        paths_rgbs.append(f"{repo_path}/{cfg.experiment_dir}/{o}/{o}_images/rgb")
+        paths_target_images.append(f"{repo_path}/{cfg.experiment_dir}/{o}/{o}_images/")
+        paths_reskin.append(f"{repo_path}/{cfg.experiment_dir}/{o}/{o}_tactile")
+        paths_masks.append(f"{repo_path}/{cfg.experiment_dir}/{o}/{o}_images/masks")
+    rgb_images = get_target_images(paths_rgbs, "rgb", cfg.image_size)
+    rgb_images = np.asarray(rgb_images, dtype=np.uint8)
+    target_images = get_target_images(
+        paths_target_images, cfg.image_type, cfg.image_size
+    )
+    target_images = np.asarray(target_images, dtype=np.uint8)
+    target_masks = get_target_masks(paths_masks, cfg.image_size)
+    rgb_images = np.reshape(
+        rgb_images,
+        (rgb_images.shape[0], cfg.image_size[0] * cfg.image_size[1] * 3),
+    )
+    target_images = np.reshape(
+        target_images,
+        (target_images.shape[0], cfg.image_size[0] * cfg.image_size[1]),
+    )
+    target_masks = np.array(
+        np.reshape(
+            target_masks, (target_masks.shape[0], cfg.image_size[0] * cfg.image_size[1])
+        ),
+        dtype=np.uint8,
+    )
+    return (rgb_images, target_images, target_masks, paths_reskin)
+
+    # probably not needed
+    if cfg.contrast_filter and cfg.masks_filter:
+        raise ValueError("Cannot use both contrast and masks filters in this version.")
+
+
+def scale_data(cfg, data, scaler):
+    pass
+
+
 def preprocess_object_data(
     cfg,
     repo_path,
-    objects_names,
     mean_images=None,
     std_images=None,
     mean_reskin=None,
@@ -357,75 +345,13 @@ def preprocess_object_data(
     scaler_reskin=None,
     train=True,
 ):
-    if cfg.contrast_filter and cfg.masks_filter:
-        raise ValueError("Cannot use both contrast and masks filters in this version.")
     # get data.
-    objects_names = objects_names.split(",")
-    path_rgb = []
-    path_depth = []
-    path_reskin = []
-    path_masks = []
-    for p in objects_names:
-        path_rgb.append(f"{repo_path}/{cfg.experiment_dir}/{p}/{p}_images/rgb")
-        if cfg.process_depth and cfg.image_type == "depth":
-            path_depth.append(
-                f"{repo_path}/{cfg.experiment_dir}/{p}/{p}_images/depth_processed"
-            )
-        else:
-            path_depth.append(
-                f"{repo_path}/{cfg.experiment_dir}/{p}/{p}_images/{cfg.image_type}"
-            )
-        path_reskin.append(f"{repo_path}/{cfg.experiment_dir}/{p}/{p}_tactile")
-        path_masks.append(f"{repo_path}/{cfg.experiment_dir}/{p}/{p}_images/masks")
-    rgb_images = get_target_images(path_rgb, "rgb", cfg.image_size)
-    rgb_images = np.asarray(rgb_images, dtype=np.uint8)
-    if cfg.process_depth and cfg.image_type == "depth":
-        target_images = get_depth_processed(path_depth, cfg.image_size)
-    else:
-        target_images = get_target_images(path_depth, cfg.image_type, cfg.image_size)
-    target_images = np.asarray(target_images, dtype=np.uint8)
-    target_masks = get_target_masks(path_masks, cfg.image_size)
-    if cfg.mask_depth:
-        target_images = target_images * target_masks
-    # convert RGB images to grayscale if specified in the config
-    if cfg.rgb_gray:
-        rgb_images = np.array([rgb2gray(image) for image in rgb_images])
-        if cfg.image_type == "rgb":
-            target_images = np.array([rgb2gray(image) for image in target_images])
-    rgb_images_length = rgb_images.shape[0]
-    target_images_length = target_images.shape[0]
-    rgb_images = np.reshape(
-        rgb_images,
-        (
-            rgb_images_length,
-            cfg.image_size[0] * cfg.image_size[1] * cfg.rgb_gray_factor,
-        ),
+    (rgb_images, target_images, target_masks, path_reskin) = fetch_data(
+        cfg, repo_path, train
     )
-    target_images = np.reshape(
-        target_images,
-        (
-            target_images_length,
-            cfg.image_size[0] * cfg.image_size[1] * cfg.image_factor,
-        ),
-    )
-    target_masks = np.array(
-        np.reshape(
-            target_masks, (target_images_length, cfg.image_size[0] * cfg.image_size[1])
-        ),
-        dtype=np.uint8,
-    )
-    if cfg.classification:
-        if train:
-            target_masks = np.load(f"labels.npy")
-        else:
-            target_masks = np.load(f"labels_test.npy")
-        target_masks = np.array(
-            np.reshape(target_masks, (target_images_length, cfg.n_image_clusters)),
-            dtype=np.uint8,
-        )
-    # scale data
-    simple_standardize = False
 
+    # scale data
+    simple_standardize = True
     if train:
         ## Calculate data statistics
         mean_images = np.mean(target_images)
@@ -439,34 +365,22 @@ def preprocess_object_data(
         ) = dataset.prepare_reskin_data(
             path_reskin,
             cfg.binary,
+            differential_signal=True,
             standardize=simple_standardize,
-            ambient_aggregated=True,
-            ambient_every_reading=True,
+            ambient_aggregated=False,
+            ambient_every_reading=False,
         )
-        if cfg.cluster_means and not cfg.external:
-            tactile_input = np.load(
-                f"{cfg.out}/{cfg.model_id}/training_tactile_cluster_means.npy"
-            )
-            mean_reskin = np.mean(tactile_input)
-            std_reskin = np.std(tactile_input)
-            tactile_input = np.divide(tactile_input - mean_reskin, std_reskin)
-            tactile_targets = tactile_input
-            print("Using cluster means for training")
         scaler_images = QuantileTransformer(
             n_quantiles=target_images.shape[0], output_distribution="uniform"
         )
-        # scaler_images = RobustScaler()
         scaler_rgb = QuantileTransformer(
             n_quantiles=rgb_images.shape[0], output_distribution="uniform"
         )
-        # scaler_rgb = RobustScaler()
-        scaler_reskin = QuantileTransformer(
-            n_quantiles=tactile_input.shape[0], output_distribution="uniform"
-        )
         scaler_reskin = RobustScaler()
-        # scaler_reskin = scaler_reskin.fit(tactile_input)
-        # scaler_images = scaler_images.fit(target_images)
-        # scaler_rgb = scaler_rgb.fit(rgb_images)
+        tactile_input = (tactile_input - np.min(tactile_input)) / (
+            np.max(tactile_input) - np.min(tactile_input)
+        )
+        tactile_targets = tactile_input
     else:
         ## Apply passed Z-standard normalization on test target images and test reskin data
         tactile_input, tactile_targets, _, _ = dataset.prepare_reskin_data(
@@ -474,93 +388,17 @@ def preprocess_object_data(
             cfg.binary,
             mean_reskin,
             std_reskin,
+            differential_signal=True,
             standardize=simple_standardize,
-            ambient_aggregated=True,
-            ambient_every_reading=True,
+            ambient_aggregated=False,
+            ambient_every_reading=False,
         )
+        # min max scale tactile_input between 0 and 1
+        tactile_input = (tactile_input - np.min(tactile_input)) / (
+            np.max(tactile_input) - np.min(tactile_input)
+        )
+        tactile_targets = tactile_input
         target_images = np.divide(target_images - mean_images, std_images)
-
-    # magic_filter = np.load(
-    #     "/export/home/ayada/reskin_ws/src/touch2image/reskin/deltas.npy"
-    # )
-    # tactile_input = tactile_input[magic_filter]
-    # tactile_targets = tactile_targets[magic_filter]
-    # target_images = target_images[magic_filter]
-    # rgb_images = rgb_images[magic_filter]
-    # target_masks = target_masks[magic_filter]
-    # filter data
-    # remove very large tactile values and their corresponding images
-    if cfg.tactile_filter:
-        tactile_input = tactile_input[
-            np.where(
-                np.all(
-                    np.logical_and(
-                        tactile_input < cfg.tactile_filter_threshold,
-                        tactile_input > -cfg.tactile_filter_threshold,
-                    ),
-                    axis=1,
-                )
-            )
-        ]
-        tactile_targets = tactile_targets[
-            np.where(
-                np.all(
-                    np.logical_and(
-                        tactile_targets < cfg.tactile_filter_threshold,
-                        tactile_targets > -cfg.tactile_filter_threshold,
-                    ),
-                    axis=1,
-                )
-            )
-        ]
-        target_images = target_images[
-            np.where(
-                np.all(
-                    np.logical_and(
-                        tactile_targets < cfg.tactile_filter_threshold,
-                        tactile_targets > -cfg.tactile_filter_threshold,
-                    ),
-                    axis=1,
-                )
-            )
-        ]
-        rgb_images = rgb_images[
-            np.where(
-                np.all(
-                    np.logical_and(
-                        tactile_targets < cfg.tactile_filter_threshold,
-                        tactile_targets > -cfg.tactile_filter_threshold,
-                    ),
-                    axis=1,
-                )
-            )
-        ]
-        target_masks = target_masks[
-            np.where(
-                np.all(
-                    np.logical_and(
-                        tactile_targets < cfg.tactile_filter_threshold,
-                        tactile_targets > -cfg.tactile_filter_threshold,
-                    ),
-                    axis=1,
-                )
-            )
-        ]
-    # remove images where the norm of the image is 0
-    if cfg.masks_filter:
-        target_images = target_images[
-            np.where(np.linalg.norm(target_images, axis=1) != 0)
-        ]
-        rgb_images = rgb_images[np.where(np.linalg.norm(target_images, axis=1) != 0)]
-        tactile_input = tactile_input[
-            np.where(np.linalg.norm(target_images, axis=1) != 0)
-        ]
-        tactile_targets = tactile_targets[
-            np.where(np.linalg.norm(target_images, axis=1) != 0)
-        ]
-        target_masks = target_masks[
-            np.where(np.linalg.norm(target_images, axis=1) != 0)
-        ]
 
     # Stack data
     data = np.hstack(
@@ -591,7 +429,7 @@ def preprocess_object_data(
                 ]
             )
             validation_target_images_stop_index = (
-                cfg.image_size[0] * cfg.image_size[1] * cfg.image_factor
+                cfg.image_size[0] * cfg.image_size[1]
             ) + cfg.model.tactile_input_shape * 2
             validation_target_images = torch.FloatTensor(
                 validation_data[
@@ -601,7 +439,7 @@ def preprocess_object_data(
                 ]
             )
             validation_rgb_images_stop_index = (
-                cfg.image_size[0] * cfg.image_size[1] * cfg.rgb_gray_factor
+                cfg.image_size[0] * cfg.image_size[1] * 3
             ) + validation_target_images_stop_index
             validation_rgb_images = torch.FloatTensor(
                 validation_data[
@@ -617,6 +455,7 @@ def preprocess_object_data(
         # Shuffle test data.
         np.random.shuffle(test_data)
         test_indices, test_data = zip(*test_data)
+        test_indices = np.squeeze(test_indices)
         test_data = np.asarray(test_data, dtype=np.float32)
         # Separate shuffled test data into tensors.
         test_tactile_input = torch.FloatTensor(
@@ -628,7 +467,7 @@ def preprocess_object_data(
             ]
         )
         test_target_images_stop_index = (
-            cfg.image_size[0] * cfg.image_size[1] * cfg.image_factor
+            cfg.image_size[0] * cfg.image_size[1] * 1
         ) + cfg.model.tactile_input_shape * 2
         test_target_images = torch.FloatTensor(
             test_data[
@@ -636,7 +475,7 @@ def preprocess_object_data(
             ]
         )
         test_rgb_images_stop_index = (
-            cfg.image_size[0] * cfg.image_size[1] * cfg.rgb_gray_factor
+            cfg.image_size[0] * cfg.image_size[1] * 3
         ) + test_target_images_stop_index
         test_rgb_images = torch.FloatTensor(
             test_data[:, test_target_images_stop_index:test_rgb_images_stop_index]
@@ -680,6 +519,7 @@ def preprocess_object_data(
         data = list(enumerate(data))
         np.random.shuffle(data)
         indices, data = zip(*data)
+        indices = np.squeeze(indices)
         data = np.array(data, dtype=np.float32)
         data = torch.FloatTensor(data)
         # Separate shuffled training data into tensors.
@@ -688,13 +528,13 @@ def preprocess_object_data(
             data[:, cfg.model.tactile_input_shape : cfg.model.tactile_input_shape * 2]
         )
         target_images_stop_index = (
-            cfg.image_size[0] * cfg.image_size[1] * cfg.image_factor
+            cfg.image_size[0] * cfg.image_size[1]
         ) + cfg.model.tactile_input_shape * 2
         target_images = torch.FloatTensor(
             data[:, cfg.model.tactile_input_shape * 2 : target_images_stop_index]
         )
         rgb_images_stop_index = (
-            cfg.image_size[0] * cfg.image_size[1] * cfg.rgb_gray_factor
+            cfg.image_size[0] * cfg.image_size[1] * 3
         ) + target_images_stop_index
         rgb_images = torch.FloatTensor(
             data[:, target_images_stop_index:rgb_images_stop_index]
@@ -719,23 +559,6 @@ def preprocess_object_data(
 
 def _validating(loader, cfg, device, model, full_validation_loss_per_dimension=[]):
     epoch_loss_per_dimension = []
-    reset_tactile_connection = False
-    reset_image_connection = False
-    if (
-        cfg.model.encode_tactile and cfg.model.encode_image
-    ):  # encoding both tactile and image but using only one in the inference
-        print(
-            "WARNING: Using double embedding in training but only one encoder in the inference"
-        )
-        if cfg.infer_output_type == "tactile":
-            if model.connect_tactile_encoder_in_encode_image == True:
-                model.connect_tactile_encoder_in_encode_image = False
-                reset_tactile_connection = True
-        elif cfg.infer_output_type == "image":
-            if model.connect_image_encoder_in_encode_image == True:
-                model.connect_image_encoder_in_encode_image = False
-                reset_image_connection = True
-
     criterion_sensor = losses[cfg.parameters.l_sensor]
     criterion_camera = losses[cfg.parameters.l_image]
     criterion_masks = losses[cfg.parameters.l_masks]
@@ -748,7 +571,6 @@ def _validating(loader, cfg, device, model, full_validation_loss_per_dimension=[
     loss_masks = 0
     loss_masks_acc = 0
     loss_tactile = 0
-    loss_code = 0
     for (
         batch_tactile_features,
         batch_tactile_targets,
@@ -765,10 +587,10 @@ def _validating(loader, cfg, device, model, full_validation_loss_per_dimension=[
         ).to(device)
         if cfg.model.cnn_images_encoder:
             batch_target_images = batch_target_images.view(
-                -1, cfg.image_size[0], cfg.image_size[1], cfg.image_factor
+                -1, cfg.image_size[0], cfg.image_size[1], 1
             ).to(device)
             batch_rgb_images = batch_rgb_images.view(
-                -1, cfg.image_size[0], cfg.image_size[1], cfg.rgb_gray_factor
+                -1, cfg.image_size[0], cfg.image_size[1], 3
             ).to(device)
             batch_target_masks = batch_target_masks.view(
                 -1, cfg.image_size[0], cfg.image_size[1], 1
@@ -777,10 +599,10 @@ def _validating(loader, cfg, device, model, full_validation_loss_per_dimension=[
             batch_target_masks = batch_target_masks.permute(0, 3, 1, 2)
         else:
             batch_target_images = batch_target_images.view(
-                -1, cfg.image_size[0] * cfg.image_size[1] * cfg.image_factor
+                -1, cfg.image_size[0] * cfg.image_size[1] * 1
             ).to(device)
             batch_rgb_images = batch_rgb_images.view(
-                -1, cfg.image_size[0] * cfg.image_size[1] * cfg.rgb_gray_factor
+                -1, cfg.image_size[0] * cfg.image_size[1] * 3
             ).to(device)
             if not cfg.classification:
                 batch_target_masks = batch_target_masks.view(
@@ -791,123 +613,93 @@ def _validating(loader, cfg, device, model, full_validation_loss_per_dimension=[
         ## initialize batch losses
         batch_loss_rgb = 0
         batch_loss_tactile = 0
-        batch_loss_masks = 0
         batch_loss_masks_acc = 0
         batch_loss_images = 0
         batch_loss = 0
-        batch_loss_code = 0
-        if cfg.model.aux_reconstruction:
-            # get only auxilary tactile reconstruction
-            tactile_output, images_output, masks_output, code, code_images = model(
-                batch_tactile_features, batch_target_masks
+        tactile_output, images_output, code_images = model(batch_target_masks)
+        if cfg.constant_tactile_prediction:
+            mean_tactile_reading = np.array(
+                [
+                    0.17954793,
+                    -0.03041726,
+                    0.18764104,
+                    -0.09909063,
+                    -0.05257506,
+                    0.04022784,
+                    -0.07302847,
+                    -0.06282117,
+                    0.17289482,
+                    0.0272471,
+                    -0.0390836,
+                    -0.02754876,
+                    -0.04583777,
+                    -0.09837113,
+                    -0.07878488,
+                ]
             )
-            if cfg.constant_tactile_prediction:
-                mean_tactile_reading = np.array(
-                    [
-                        0.17954793,
-                        -0.03041726,
-                        0.18764104,
-                        -0.09909063,
-                        -0.05257506,
-                        0.04022784,
-                        -0.07302847,
-                        -0.06282117,
-                        0.17289482,
-                        0.0272471,
-                        -0.0390836,
-                        -0.02754876,
-                        -0.04583777,
-                        -0.09837113,
-                        -0.07878488,
-                    ]
-                )
-                bs = tactile_output.shape[0]
-                tensor = np.tile(mean_tactile_reading, (bs, 1))
-                tensor = tensor.reshape(bs, cfg.model.tactile_input_shape)
-                tactile_output = torch.FloatTensor(tensor).to(device)
-            batch_loss_tactile = (
-                criterion_sensor(tactile_output, batch_tactile_targets)
-                * cfg.tactile_loss_scale
-            )
+            bs = tactile_output.shape[0]
+            tensor = np.tile(mean_tactile_reading, (bs, 1))
+            tensor = tensor.reshape(bs, cfg.model.tactile_input_shape)
+            tactile_output = torch.FloatTensor(tensor).to(device)
+        batch_loss_tactile = (
+            criterion_sensor(tactile_output, batch_tactile_targets)
+            * cfg.tactile_loss_scale
+        )
 
-            # Calculate the number of dimensions (columns) in the tensors (num_features)
-            num_dimensions = tactile_output.shape[1]
-            # Instantiate the Mean Squared Error (MSE) loss
-            to_be_stored_criterion = nn.MSELoss(reduction="none")
-            # Calculate the loss separately for each dimension (feature) for each sample
-            batch_loss_per_dimension = []
-            for dim in range(num_dimensions):
-                input_slice = tactile_output[
-                    :, dim
-                ]  # Slice the input tensor along the dimension (feature)
-                target_slice = batch_tactile_targets[
-                    :, dim
-                ]  # Slice the target tensor along the dimension (feature)
-                dimension_loss = (
-                    to_be_stored_criterion(input_slice, target_slice).cpu().numpy()
-                )
-                batch_loss_per_dimension.append(dimension_loss)
-                mean_batch_loss_per_dimension = np.mean(
-                    batch_loss_per_dimension, axis=1
-                )
-        else:
-            # don't add any auxilary reconstruction
-            images_output, masks_output = model(batch_tactile_features)
+        # Calculate the number of dimensions (columns) in the tensors (num_features)
+        num_dimensions = tactile_output.shape[1]
+        # Instantiate the Mean Squared Error (MSE) loss
+        to_be_stored_criterion = nn.MSELoss(reduction="none")
+        # Calculate the loss separately for each dimension (feature) for each sample
+        batch_loss_per_dimension = []
+        for dim in range(num_dimensions):
+            input_slice = tactile_output[
+                :, dim
+            ]  # Slice the input tensor along the dimension (feature)
+            target_slice = batch_tactile_targets[
+                :, dim
+            ]  # Slice the target tensor along the dimension (feature)
+            dimension_loss = (
+                to_be_stored_criterion(input_slice, target_slice).cpu().numpy()
+            )
+            batch_loss_per_dimension.append(dimension_loss)
+            mean_batch_loss_per_dimension = np.mean(batch_loss_per_dimension, axis=1)
+
         # postprocess outputs
-        masks_output_thresholded = torch.where(
-            masks_output > cfg.masks_threshold, 1.0, 0
+        images_output_thresholded = torch.where(
+            images_output > cfg.masks_threshold, 1.0, 0
         )
         # compute output configuration invariant losses
         if cfg.parameters.l_image == "masked_mse_loss":
             batch_loss_images = criterion_camera(
-                images_output, batch_target_images, masks_output, batch_target_masks
+                images_output, batch_target_images, batch_target_masks
             )
         else:
             # flatten the output and target images
             images_output = images_output.view(
-                -1, cfg.image_size[0] * cfg.image_size[1] * cfg.image_factor
+                -1, cfg.image_size[0] * cfg.image_size[1] * 1
             )
             batch_target_images = batch_target_images.view(
-                -1, cfg.image_size[0] * cfg.image_size[1] * cfg.image_factor
+                -1, cfg.image_size[0] * cfg.image_size[1] * 1
             )
             batch_loss_images = criterion_camera(images_output, batch_target_images)
-        if cfg.multiply_mask_losses:
-            batch_loss_masks = criterion_masks(
-                masks_output, batch_target_masks
-            ) * criterion_masks_2(masks_output, batch_target_masks)
-        else:
-            # flatten the output and target masks
-            masks_output = masks_output.view(-1, cfg.image_size[0] * cfg.image_size[1])
-            batch_target_masks = batch_target_masks.view(
-                -1, cfg.image_size[0] * cfg.image_size[1]
-            )
-            batch_loss_masks = criterion_masks(masks_output, batch_target_masks)
         if criterion_masks is no_loss:
             batch_loss_masks_acc = 0
         else:
             batch_loss_masks_acc = accuracy(
-                masks_output_thresholded.detach().cpu().numpy(),
+                images_output_thresholded.detach().cpu().numpy(),
                 batch_target_masks.detach().cpu().numpy(),
             )
-        batch_loss_code = criterion_code(code, code_images) * cfg.code_loss_scale
 
         # compute total batch loss
-        batch_loss = (
-            batch_loss_tactile
-            + batch_loss_images
-            + batch_loss_rgb
-            + batch_loss_masks
-            + batch_loss_code
-        )
+        batch_loss = batch_loss_tactile + batch_loss_images + batch_loss_rgb
         # compute accumulated gradients
         if not torch.isnan(batch_loss):
             # add the batch loss to epoch loss
             loss += batch_loss
             loss_images += batch_loss_images
-            loss_masks += batch_loss_masks
             loss_masks_acc += batch_loss_masks_acc
             loss_tactile += batch_loss_tactile
-            loss_code += batch_loss_code
 
         epoch_loss_per_dimension.append(mean_batch_loss_per_dimension)
     mean_epoch_loss_per_dimension = np.mean(epoch_loss_per_dimension, axis=0)
@@ -918,21 +710,13 @@ def _validating(loader, cfg, device, model, full_validation_loss_per_dimension=[
         loss_images = loss_images / len(loader)
         loss_masks = loss_masks / len(loader)
         loss_tactile = loss_tactile / len(loader)
-        loss_code = loss_code / len(loader)
         loss_masks_acc = loss_masks_acc / len(loader)
-        if reset_tactile_connection:
-            model.connect_tactile_encoder_in_encode_image = True
-        if reset_image_connection:
-            model.connect_image_encoder_in_encode_image = True
     return (
         loss,
         loss_images,
-        loss_masks,
         loss_masks_acc,
         loss_tactile,
-        loss_code,
         images_output,
-        masks_output,
         batch_rgb_images,
         batch_target_images,
         batch_target_masks,
@@ -1018,11 +802,8 @@ def train_touch_to_image(
         loss_images = 0
         loss_masks = 0
         loss_tactile = 0
-        loss_code = 0
-        kl_loss_rgb = 0
         kl_loss_tactile = 0
         kl_loss_images = 0
-        kl_loss_masks = 0
         # training the model
         for (
             batch_tactile_features,
@@ -1040,10 +821,10 @@ def train_touch_to_image(
             ).to(device)
             if not cfg.model.cnn_images_encoder:
                 batch_target_images = batch_target_images.view(
-                    -1, cfg.image_size[0] * cfg.image_size[1] * cfg.image_factor
+                    -1, cfg.image_size[0] * cfg.image_size[1] * 1
                 ).to(device)
                 batch_rgb_images = batch_rgb_images.view(
-                    -1, cfg.image_size[0] * cfg.image_size[1] * cfg.rgb_gray_factor
+                    -1, cfg.image_size[0] * cfg.image_size[1] * 3
                 ).to(device)
                 if not cfg.classification:
                     batch_target_masks = batch_target_masks.view(
@@ -1051,10 +832,10 @@ def train_touch_to_image(
                     ).to(device)
             else:
                 batch_target_images = batch_target_images.view(
-                    -1, cfg.image_size[0], cfg.image_size[1], cfg.image_factor
+                    -1, cfg.image_size[0], cfg.image_size[1], 1
                 ).to(device)
                 batch_rgb_images = batch_rgb_images.view(
-                    -1, cfg.image_size[0], cfg.image_size[1], cfg.rgb_gray_factor
+                    -1, cfg.image_size[0], cfg.image_size[1], 3
                 ).to(device)
                 batch_target_masks = batch_target_masks.view(
                     -1, cfg.image_size[0], cfg.image_size[1], 1
@@ -1064,44 +845,37 @@ def train_touch_to_image(
 
             # reset the gradients back to zero
             optimizer.zero_grad()
-            # evaluate available reconstructions and their losses
-            if cfg.model.aux_reconstruction:
-                (
-                    tactile_output,
-                    images_output,
-                    masks_output,
-                    code,
-                    code_images,
-                ) = model(batch_tactile_features, batch_target_masks)
-                # process the auxilary loss; tactile reconstruction loss
-                train_loss_tactile = (
-                    criterion_sensor(tactile_output, batch_tactile_targets)
-                    * cfg.tactile_loss_scale
+            (
+                tactile_output,
+                images_output,
+                code_images,
+            ) = model(batch_target_masks)
+            # process the auxilary loss; tactile reconstruction loss
+            train_loss_tactile = (
+                criterion_sensor(tactile_output, batch_tactile_targets)
+                * cfg.tactile_loss_scale
+            )
+            if cfg.parameters.kl_sensor:
+                tactile_output_p = torch.softmax(tactile_output, -1)
+                batch_tactile_targets_p = torch.softmax(batch_tactile_targets, -1)
+                train_kl_loss_tactile = criterion_regularization(
+                    torch.log(tactile_output_p), torch.log(batch_tactile_targets_p)
                 )
-                if cfg.parameters.kl_sensor:
-                    tactile_output_p = torch.softmax(tactile_output, -1)
-                    batch_tactile_targets_p = torch.softmax(batch_tactile_targets, -1)
-                    train_kl_loss_tactile = criterion_regularization(
-                        torch.log(tactile_output_p), torch.log(batch_tactile_targets_p)
-                    )
-                else:
-                    train_kl_loss_tactile = 0
             else:
-                # don't add any auxilary reconstruction
-                images_output, masks_output = model(batch_tactile_features)
+                train_kl_loss_tactile = 0
 
             # compute the depth reconstruction loss and mask reconstruction loss
             if cfg.parameters.l_image == "masked_mse_loss":
                 train_loss_images = criterion_camera(
-                    images_output, batch_target_images, masks_output, batch_target_masks
+                    images_output, batch_target_images, batch_target_masks
                 )
             else:
                 # flatten the output and target images
                 images_output = images_output.view(
-                    -1, cfg.image_size[0] * cfg.image_size[1] * cfg.image_factor
+                    -1, cfg.image_size[0] * cfg.image_size[1] * 1
                 )
                 batch_target_images = batch_target_images.view(
-                    -1, cfg.image_size[0] * cfg.image_size[1] * cfg.image_factor
+                    -1, cfg.image_size[0] * cfg.image_size[1] * 1
                 )
                 train_loss_images = criterion_camera(images_output, batch_target_images)
             if cfg.parameters.kl_image:
@@ -1112,44 +886,13 @@ def train_touch_to_image(
                 )
             else:
                 train_kl_loss_images = 0
-            if cfg.multiply_mask_losses:
-                train_loss_masks = criterion_masks(
-                    masks_output, batch_target_masks
-                ) * criterion_masks_2(masks_output, batch_target_masks)
-            else:
-                # flatten the output and target masks
-                masks_output = masks_output.view(
-                    -1, cfg.image_size[0] * cfg.image_size[1]
-                )
-                batch_target_masks = batch_target_masks.view(
-                    -1, cfg.image_size[0] * cfg.image_size[1]
-                )
-                train_loss_masks = criterion_masks(masks_output, batch_target_masks)
-            if cfg.parameters.kl_masks:
-                masks_output_p = torch.softmax(masks_output, -1)
-                batch_target_masks_p = torch.softmax(batch_target_masks, -1)
-                train_kl_loss_masks = criterion_regularization(
-                    torch.log(masks_output_p), torch.log(batch_target_masks_p)
-                )
-            else:
-                train_kl_loss_masks = 0
 
             # compute training and regularization losses
             train_kl_loss = (
-                train_kl_loss_images
-                + train_kl_loss_tactile
-                + train_kl_loss_rgb
-                + train_kl_loss_masks
+                train_kl_loss_images + train_kl_loss_tactile + train_kl_loss_rgb
             )
             train_kl_loss = train_kl_loss * cfg.kl_loss_scale
-            train_loss_code = criterion_code(code, code_images) * cfg.code_loss_scale
-            train_loss = (
-                train_loss_tactile
-                + train_loss_images
-                + train_loss_rgb
-                + train_loss_masks
-                + train_loss_code
-            )
+            train_loss = train_loss_tactile + train_loss_images + train_loss_rgb
             # compute accumulated gradients
             if not torch.isnan(train_loss):
                 if cfg.regularize:
@@ -1162,28 +905,22 @@ def train_touch_to_image(
                 # add the batch training loss to epoch loss
                 loss += train_loss.item()
                 loss_images += train_loss_images
-                loss_masks += train_loss_masks
                 loss_tactile += train_loss_tactile
-                loss_code += train_loss_code
                 if cfg.regularize:
                     kl_loss_images += train_kl_loss_images * cfg.kl_loss_scale
-                    kl_loss_masks += train_kl_loss_masks * cfg.kl_loss_scale
                     kl_loss_tactile += train_kl_loss_tactile * cfg.kl_loss_scale
 
         # compute the epoch training loss
         if not torch.isnan(train_loss):
             loss = loss / len(train_loader)
             loss_images = loss_images / len(train_loader)
-            loss_masks = loss_masks / len(train_loader)
             loss_tactile = loss_tactile / len(train_loader)
-            loss_code = loss_code / len(train_loader)
             kl_loss_images = kl_loss_images / len(train_loader)
-            kl_loss_masks = kl_loss_masks / len(train_loader)
             kl_loss_tactile = kl_loss_tactile / len(train_loader)
 
         # post process outputs
-        masks_output_thresholded = torch.where(
-            masks_output > cfg.masks_threshold, 1.0, 0
+        images_output_thresholded = torch.where(
+            images_output > cfg.masks_threshold, 1.0, 0
         )
 
         # display the epoch training loss
@@ -1200,12 +937,9 @@ def train_touch_to_image(
                 (
                     v_loss,
                     v_loss_images,
-                    v_loss_masks,
                     v_loss_masks_acc,
                     v_loss_tactile,
-                    code_v_loss,
                     validation_images_output,
-                    validation_masks_output,
                     validation_rgb_targets,
                     validation_images_targets,
                     validation_masks_targets,
@@ -1237,8 +971,8 @@ def train_touch_to_image(
                 lr = cfg.parameters.lr
                 previous_tactile_loss = loss_tactile
             print(epoch, "validation epoch number")
-            validation_masks_output = torch.where(
-                validation_masks_output > cfg.masks_threshold, 1.0, 0
+            validation_images_output = torch.where(
+                validation_images_output > cfg.masks_threshold, 1.0, 0
             )
             # fig=plot_touch_to_image(cfg,None,validation_images_targets,validation_rgb_targets,validation_masks_targets,
             #     validation_images_output,None,None,validation_masks_output
@@ -1246,18 +980,14 @@ def train_touch_to_image(
             model.train()  # Set model back to training mode
             wandb.log(
                 {
-                    "code validation loss": code_v_loss,
                     "total validation loss": v_loss,
                     "depth validation loss": v_loss_images,
-                    "masks validation loss": v_loss_masks,
                     "masks validation accuracy": v_loss_masks_acc,
                     "tactile validation loss": v_loss_tactile,
-                    "code loss": loss_code,
                     "total loss": loss,
                     "depth loss": loss_images,
                     "tactile loss": loss_tactile,
                     "masks loss": loss_masks,
-                    "kl loss masks": kl_loss_masks,
                     "kl loss tactile": kl_loss_tactile,
                     "kl loss images": kl_loss_images,
                 },
@@ -1268,12 +998,10 @@ def train_touch_to_image(
         else:
             wandb.log(
                 {
-                    "code loss": loss_code,
                     "total loss": loss,
                     "depth loss": loss_images,
                     "tactile loss": loss_tactile,
                     "masks loss": loss_masks,
-                    "kl loss masks": kl_loss_masks,
                     "kl loss tactile": kl_loss_tactile,
                     "kl loss images": kl_loss_images,
                 },
@@ -1296,7 +1024,7 @@ def train_touch_to_image(
         images_output,
         tactile_output,
         rgb_output,
-        masks_output_thresholded,
+        images_output_thresholded,
         v_loss_tactile,
     )
 
@@ -1323,14 +1051,6 @@ def plot_touch_to_image(
         fig = plt.figure(figsize=(20, 4))
         plt.gray()
         for index in range(number):
-            # display normalized original tactile
-            # ax = plt.subplot(9, number, index + 1)
-            # plt.imshow(tactile_test_examples[index].cpu().numpy().reshape(15, 1))
-            # ax.get_xaxis().set_visible(False)
-            # ax.get_yaxis().set_visible(False)
-            # if index == number -1:
-            #     ax.text(10,10,"original tactile data")
-
             # display original image data / uncomment for masked
             ax = plt.subplot(9, number, index + 1 + 2 * number)
             image_original = original_target_images[index].cpu().numpy().reshape(1, -1)
@@ -1338,15 +1058,11 @@ def plot_touch_to_image(
                 image_original = scaler_images.inverse_transform(image_original)
             except:
                 pass
-            # image_original = (image_original * std_images) + mean_images
             image_original = np.array(image_original, dtype=np.uint8).reshape(
                 cfg.image_size[0], cfg.image_size[1]
             )
             image_original = cv2.equalizeHist(image_original)
-            # comment for masked
-            # mask_original=original_masks[index].cpu().numpy().reshape(1,-1)
-            # mask_original=np.array(mask_original,dtype=np.uint8).reshape(cfg.image_size[0],cfg.image_size[1])
-            # image_original=cv2.bitwise_and(image_original,image_original,mask = mask_original)
+
             plt.imshow(image_original)
             ax.get_xaxis().set_visible(False)
             ax.get_yaxis().set_visible(False)
@@ -1391,38 +1107,13 @@ def plot_touch_to_image(
             if index == number - 1:
                 ax.text(60, 20, "reconstructed feed data")
 
-            ## display reconstructed masks independentally
-            # ax = plt.subplot(9, number, index + 1 + 5 * number)
-            # mask_reconstruct=masks_reconstructions[index].cpu().numpy().reshape(1,-1)
-            # mask_reconstruct=np.array(mask_reconstruct,dtype=np.uint8).reshape(cfg.image_size[0],cfg.image_size[1])
-            # plt.imshow(mask_reconstruct,vmin=0,vmax=1)
-            # ax.get_xaxis().set_visible(False)
-            # ax.get_yaxis().set_visible(False)
-            # if index == number -1:
-            #     ax.text(60,20,"reconstructed mask data")
-
-            ## display reconstructed image masked
-            # ax = plt.subplot(9, number, index + 1 + 6 * number)
-            # image_reconstruct=image_reconstructions[index].cpu().numpy().reshape(1,-1)
-            # mask_reconstruct=masks_reconstructions[index].cpu().numpy().reshape(1,-1)
-            # image_reconstruct=scaler_images.inverse_transform(image_reconstruct)
-            # image_reconstruct=(image_reconstruct * std_images)+mean_images
-            # image_reconstruct=np.array(image_reconstruct,dtype=np.uint8).reshape(cfg.image_size[0],cfg.image_size[1])
-            # mask_reconstruct=np.array(mask_reconstruct,dtype=np.uint8).reshape(cfg.image_size[0],cfg.image_size[1])
-            # image_reconstruct=cv2.bitwise_and(image_reconstruct,image_reconstruct,mask = mask_reconstruct)
-            # plt.imshow(image_reconstruct,vmin=0.5,vmax=1)
-            # ax.get_xaxis().set_visible(False)
-            # ax.get_yaxis().set_visible(False)
-            # if index == number -1:
-            #     ax.text(60,20,"reconst image masked data")
-
             ## display original rgb
             if original_rgb_images is not None:
                 ax = plt.subplot(9, number, index + 1 + 7 * number)
                 rgb_original = original_rgb_images[index].cpu().numpy().reshape(1, -1)
                 rgb_original = scaler_rgb.inverse_transform(rgb_original)
                 rgb_original = np.array(rgb_original, dtype=np.uint8).reshape(
-                    cfg.image_size[0], cfg.image_size[1], cfg.rgb_gray_factor
+                    cfg.image_size[0], cfg.image_size[1], 3
                 )
                 plt.imshow(rgb_original)
                 ax.get_xaxis().set_visible(False)

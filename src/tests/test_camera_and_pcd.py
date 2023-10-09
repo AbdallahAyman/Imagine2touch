@@ -5,7 +5,7 @@ import numpy as np
 from PIL import Image
 from robot_io.cams.realsense.realsense import Realsense
 from sklearn.preprocessing import MinMaxScaler
-from reskin.utils.utils import (
+from src.utils.utils import (
     inverse_transform,
     ROBOT_IN_WORLD,
     WCAMERA_IN_TCP,

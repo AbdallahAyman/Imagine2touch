@@ -4,7 +4,7 @@ import hydra
 import numpy as np
 from mayavi import mlab
 from omegaconf import OmegaConf
-from reskin.utils.utils import inverse_transform
+from src.utils.utils import inverse_transform
 
 if __name__ == "__main__":
     OmegaConf.register_new_resolver("path", lambda x: os.path.abspath(x))

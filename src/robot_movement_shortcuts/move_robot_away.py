@@ -2,7 +2,7 @@
 import numpy as np
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
 from scipy.spatial.transform import Rotation
-from reskin.utils.utils import (
+from src.utils.utils import (
     euler_from_vector,
     threed_vector_to_homog,
     homog_vector_to_3d,

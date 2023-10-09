@@ -1,6 +1,6 @@
 # repo modules
-from reskin.task.utils.utils import normalize_p, viz_PC
-from reskin.utils.utils import (
+from src.task.utils.utils import normalize_p, viz_PC
+from src.utils.utils import (
     load_normals,
     safety_one,
     safety_two,

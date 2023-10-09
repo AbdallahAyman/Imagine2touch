@@ -1,11 +1,11 @@
 # repo modules
-from reskin.localizers.wrist_camera_localizer import (
+from src.localizers.wrist_camera_localizer import (
     generate_step_orientation,
     generate_step_pos,
 )
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
 from robot_io.cams.realsense.realsense import Realsense
-from reskin.utils.utils import (
+from src.utils.utils import (
     FIXED_ROBOT_ORN,
     ROBOT_IN_WORLD,
     WORLD_IN_ROBOT,

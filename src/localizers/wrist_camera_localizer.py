@@ -10,10 +10,10 @@ import os
 from robot_io.cams.realsense.realsense import Realsense
 from robot_io.utils.utils import pos_orn_to_matrix
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
-from reskin.localizers.cam_localizer import (
+from src.localizers.cam_localizer import (
     FrameUtil,
 )  # used to get transforms in the experiment setting
-from reskin.utils.utils import (
+from src.utils.utils import (
     WORLD_IN_ROBOT,
     inverse_transform,
     FIXED_ROBOT_ORN,
@@ -203,14 +203,14 @@ if __name__ == "__main__":
         # cv2.waitKey(0)
 
         # ####################wait for transforms to be calculated###############################################
-        while frame_util._T_camera_in_socket is None:
+        while frame_util._T_camera_in_world is None:
             print("transform is none")
             continue
         print("transform calculated")
         time.sleep(0.1)
         T_tcp_in_robot = robot.get_tcp_pose()
         T_wcamera_in_tcp = inverse_transform(T_tcp_in_robot).dot(
-            WORLD_IN_ROBOT.dot(frame_util._T_camera_in_socket)
+            WORLD_IN_ROBOT.dot(frame_util._T_camera_in_world)
         )
         # #####################################################################################################
 

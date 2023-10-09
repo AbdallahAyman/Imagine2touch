@@ -16,14 +16,14 @@ from robot_io.cams.kinect4.kinect4 import Kinect4
 from robot_io.cams.realsense.realsense import Realsense
 from robot_io.marker_detection.aruco_detector import ArucoDetector
 from robot_io.utils.utils import pos_orn_to_matrix, matrix_to_pos_orn
-from reskin.utils import utils
+from src.utils import utils
 
 
 # Constants
 ROBOT_MARKER_ID = 4  # hard coded to suit printed markers
-SOCKET_MARKER_ID = 5
-MARKER_IDS = {ROBOT_MARKER_ID, SOCKET_MARKER_ID}
-SOCKET_IN_MARKER = pos_orn_to_matrix([-0.35, -0.04, 0.035], [0, 0, 0.5 * np.pi])
+WORLD_MARKER_ID = 5
+MARKER_IDS = {ROBOT_MARKER_ID, WORLD_MARKER_ID}
+WORLD_IN_MARKER = pos_orn_to_matrix([-0.35, -0.04, 0.035], [0, 0, 0.5 * np.pi])
 ROBOT_IN_MARKER = pos_orn_to_matrix([-0.108, 0.145, 0], [0, 0, 0])
 
 
@@ -32,7 +32,7 @@ class FrameUtil(object):
         super().__init__()
         self._lock = RLock()
 
-        self.marker_aliases = {ROBOT_MARKER_ID: "robot", SOCKET_MARKER_ID: "socket"}
+        self.marker_aliases = {ROBOT_MARKER_ID: "robot", WORLD_MARKER_ID: "world"}
         if marker_ids is not None:
             self.marker_aliases = dict(
                 sum([list(self.marker_aliases.items()), list(marker_ids.items())], [])
@@ -41,9 +41,9 @@ class FrameUtil(object):
         self.marker_aliases = {v: k for k, v in self.marker_aliases.items()}
 
         # Robot frame is world frame
-        self._T_socket_in_robot = None
+        self._T_world_in_robot = None
         self._T_camera_in_robot = None
-        self._T_camera_in_socket = None
+        self._T_camera_in_world = None
         self._T_camera_obs_series = {id: [] for id in self.marker_ids}
 
         self._shutdown = False
@@ -80,22 +80,22 @@ class FrameUtil(object):
             self._obs_thread.join()
 
     @property
-    def T_socket_in_robot(self):
+    def T_world_in_robot(self):
         with self._lock:
-            return self._T_socket_in_robot
+            return self._T_world_in_robot
 
     @property
-    def T_robot_in_socket(self):
-        return utils.inverse_transform(self._T_socket_in_robot)
+    def T_robot_in_world(self):
+        return utils.inverse_transform(self._T_world_in_robot)
 
     @property
     def T_tcp_in_robot(self):
         return self.robot.get_tcp_pose()
 
     @property
-    def T_tcp_in_socket(self):
-        if self._T_socket_in_robot is not None:
-            return utils.inverse_transform(self.T_socket_in_robot).dot(
+    def T_tcp_in_world(self):
+        if self._T_world_in_robot is not None:
+            return utils.inverse_transform(self.T_world_in_robot).dot(
                 self.robot.get_tcp_pose()
             )
         return None
@@ -142,8 +142,8 @@ class FrameUtil(object):
                     T_camera_in_r_marker
                 )
 
-        if len(self._T_camera_obs_series[SOCKET_MARKER_ID]) > 0:
-            pos, orns = zip(*self._T_camera_obs_series[SOCKET_MARKER_ID])
+        if len(self._T_camera_obs_series[WORLD_MARKER_ID]) > 0:
+            pos, orns = zip(*self._T_camera_obs_series[WORLD_MARKER_ID])
             mean_pos = np.mean(pos, axis=0)
             mean_orn = R.from_quat(orns).mean()
 
@@ -151,23 +151,23 @@ class FrameUtil(object):
                 pos_orn_to_matrix(mean_pos, mean_orn)
             )
             with self._lock:
-                self._T_camera_in_socket = utils.inverse_transform(
-                    SOCKET_IN_MARKER
-                ).dot(T_camera_in_s_marker)
+                self._T_camera_in_world = utils.inverse_transform(WORLD_IN_MARKER).dot(
+                    T_camera_in_s_marker
+                )
 
         if (
             self._T_camera_in_robot is not None
-            and len(self._T_camera_obs_series[SOCKET_MARKER_ID]) > 0
+            and len(self._T_camera_obs_series[WORLD_MARKER_ID]) > 0
         ):
-            pos, orns = zip(*self._T_camera_obs_series[SOCKET_MARKER_ID])
+            pos, orns = zip(*self._T_camera_obs_series[WORLD_MARKER_ID])
             mean_pos = np.mean(pos, axis=0)
             mean_orn = R.from_quat(orns).mean()
 
             T_s_marker_in_camera = pos_orn_to_matrix(mean_pos, mean_orn)
             with self._lock:
-                self._T_socket_in_robot = self._T_camera_in_robot.dot(
+                self._T_world_in_robot = self._T_camera_in_robot.dot(
                     T_s_marker_in_camera
-                ).dot(SOCKET_IN_MARKER)
+                ).dot(WORLD_IN_MARKER)
 
 
 if __name__ == "__main__":
@@ -184,19 +184,17 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
 
     frame_util.start()
-    while (
-        frame_util._T_camera_in_robot is None or frame_util._T_socket_in_robot is None
-    ):
+    while frame_util._T_camera_in_robot is None or frame_util._T_world_in_robot is None:
         # print("transform not yet seen")
         continue
     print("transform seen")
-    T_socket_in_camera = utils.inverse_transform(
-        frame_util.T_robot_in_socket.dot(frame_util._T_camera_in_robot)
+    T_world_in_camera = utils.inverse_transform(
+        frame_util.T_robot_in_world.dot(frame_util._T_camera_in_robot)
     )  # inverted for extrinsic camera
-    T_socket_in_robot = frame_util.T_socket_in_robot
+    T_world_in_robot = frame_util.T_world_in_robot
     T_camera_in_robot = frame_util._T_camera_in_robot
-    np.save("socket_camera_transform", T_socket_in_camera, allow_pickle=True)
-    np.save("socket_robot_transform", T_socket_in_robot, allow_pickle=True)
+    np.save("world_camera_transform", T_world_in_camera, allow_pickle=True)
+    np.save("world_robot_transform", T_world_in_robot, allow_pickle=True)
     np.save("camera_robot_transform", T_camera_in_robot, allow_pickle=True)
     print("transforms saved in the directory you ran the script from")
 
