@@ -101,6 +101,13 @@ def getTransform(config):
     return transform_matrix
 
 
+def search_folder(start_path, target_folder):
+    for dirpath, dirnames, filenames in os.walk(start_path):
+        if target_folder in dirnames:
+            return os.path.join(dirpath, target_folder)
+    return None
+
+
 # apply transform
 def transform_sensor_to_robot(vector_sensor, transform):
     vector_sensor_homog = 1 * np.array(
@@ -1189,21 +1196,24 @@ def load_pcds(cfg, down_sampled=False, estimate_normals=False):
     pcd_array = []
     objects_names = cfg.objects_names.split(",")
     pcd_files = []
-
+    repo_directory = search_folder("/", cfg.repo_directory)
     # configure the pcd loading
     if down_sampled:
         regex = re.compile(f".*_down.pcd")
     else:
         regex = re.compile(f".*_combined.pcd")
-    for root, dirs, files in os.walk(f"{cfg.data_path}"):
+    for root, dirs, files in os.walk(f"{repo_directory}/{cfg.data_path}"):
         for file in files:
+            print(file)
             if regex.match(file):
                 (
                     matched_object_string,
                     matched_object_boolean,
                 ) = is_string_present_in_filename(file, objects_names)
                 if matched_object_boolean:
-                    pcd_files.append(f"{cfg.data_path}/{matched_object_string}/{file}")
+                    pcd_files.append(
+                        f"{repo_directory}/{cfg.data_path}/{matched_object_string}/{file}"
+                    )
     pcd_files = natsort.natsorted(pcd_files)
     # if downsampled pcds are not available, load the original ones
     if len(pcd_files) != len(objects_names) and down_sampled:
@@ -1234,7 +1244,7 @@ def load_points_indeces(cfg):
     regex_points = re.compile(".*\_points.npy$")
     objects_names = cfg.objects_names.split(",")
     points_files = []
-    for root, dirs, files in os.walk(f"{cfg.data_path}"):
+    for root, dirs, files in os.walk(f"{repo_directory}/{cfg.data_path}"):
         for file in files:
             if regex_points.match(file):
                 (
@@ -1243,7 +1253,7 @@ def load_points_indeces(cfg):
                 ) = is_string_present_in_filename(file, objects_names)
                 if matched_object_boolean:
                     points_files.append(
-                        f"{cfg.data_path}/{matched_object_string}/{file}"
+                        f"{repo_directory}/{cfg.data_path}/{matched_object_string}/{file}"
                     )
     points_files = natsort.natsorted(points_files)
     if len(points_files) != len(objects_names):
@@ -1262,7 +1272,7 @@ def load_normals(cfg):
     regex_points = re.compile(".*\_normals.npy$")
     objects_names = cfg.objects_names.split(",")
     points_files = []
-    for root, dirs, files in os.walk(f"{cfg.data_path}"):
+    for root, dirs, files in os.walk(f"{repo_directory}/{cfg.data_path}"):
         for file in files:
             if regex_points.match(file):
                 (
@@ -1271,7 +1281,7 @@ def load_normals(cfg):
                 ) = is_string_present_in_filename(file, objects_names)
                 if matched_object_boolean:
                     points_files.append(
-                        f"{cfg.data_path}/{matched_object_string}/{file}"
+                        f"{repo_directory}/{cfg.data_path}/{matched_object_string}/{file}"
                     )
     points_files = natsort.natsorted(points_files)
     if len(points_files) != len(objects_names):

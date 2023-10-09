@@ -1,8 +1,9 @@
+repo_directory: "pseudo_touch"
 mode: "touchtoimage"
 true_object: "square"
 experiment_name: "square_1" # name of the experiment followed by the number of the experiment
-data_path: ${path:"task/data"}
-task_path: ${path:"task"}
+data_path: "src/task/data"
+task_path: "src/task"
 n_contacts: 10
 # objects_names: "star,square,hexagon,parallelogram,flower" 
 objects_names: "square,star,cylinder"

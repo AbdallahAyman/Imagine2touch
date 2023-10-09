@@ -1,4 +1,4 @@
-experiment_directory: reskin/data_collection/data
+experiment_directory: src/data_collection/data
 object_name: cylinder
 new_experiment: False
 copy_experiment: True

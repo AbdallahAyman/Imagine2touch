@@ -9,7 +9,9 @@ if False:
         generate_step_orientation,
         generate_step_pos,
     )
-from src.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
+    from src.task.save_pcds_extra_views import wait_until_stable_joint_velocities
+
+from src.reskin_sensor.reskin_sensor.sensor_proc import ReSkinProcess
 from src.utils.utils import (
     FIXED_ROBOT_ORN,
     ROBOT_IN_WORLD,
@@ -29,6 +31,7 @@ from src.utils.utils import (
     segment_point_cloud,
     debounce_tcp_pose,
     filter_reskin,
+    search_folder,
 )
 from src.data_collection.utils import (
     safety_one,
@@ -36,7 +39,6 @@ from src.data_collection.utils import (
     safety_three,
     custom_visualization_pcd,
     discretize_vector,
-    search_folder,
     set_up_directory,
     capture_wristcam_image,
     log_experiment_meta_data,
@@ -53,14 +55,14 @@ import hydra
 from omegaconf import OmegaConf
 import sys
 
-repo_path = search_folder("/", "touch2image")
+repo_path = search_folder("/", "pseudo_touch")
 
 
 def meta_script_init():
     # script meta data, configuration and constants
     OmegaConf.register_new_resolver("quarter_pi", lambda x: np.pi / 4)
     # remove leading slash from string
-    hydra.initialize("../data_collection/conf", version_base=None)
+    hydra.initialize("../src/data_collection/cfg", version_base=None)
     cfg = hydra.compose("collection.yaml")
     robot_flange_in_tcp = [float(num) for num in cfg.robot_flange_in_tcp.split(",")]
     N = cfg.N - 1  # counting from 0

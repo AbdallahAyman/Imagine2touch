@@ -1,8 +1,14 @@
+if False:
+    from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
+    from robot_io.utils.utils import pos_orn_to_matrix
+    from robot_io.cams.realsense.realsense import Realsense
+    import rospy
+
+
 # repo modules
 import argparse
-import math
-import sys
-from src.task.utils.utils import mask_from_depth_mesh, normalize_p, update_po
+from scripts.collect_data import init_devices
+from src.task.utils import mask_from_depth_mesh, normalize_p, update_po
 from src.utils.utils import (
     load_normals,
     safety_one,
@@ -25,11 +31,7 @@ from src.utils.utils import (
     inverse_transform,
 )
 from src.task.reconstruct_pcd import get_crops
-from src.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
-
-from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
-from robot_io.utils.utils import pos_orn_to_matrix
-from robot_io.cams.realsense.realsense import Realsense
+from src.reskin_sensor.reskin_sensor.sensor_proc import ReSkinProcess
 
 # standard libraries
 import time
@@ -38,8 +40,6 @@ import signal
 import os
 from pickle import load
 import torch
-
-import rospy
 import open3d as o3d
 import natsort
 import hydra
@@ -47,88 +47,8 @@ from omegaconf import OmegaConf
 import cv2
 import matplotlib.pyplot as plt
 
-if __name__ == "__main__":
-    # script configurations
-    OmegaConf.register_new_resolver("path", lambda x: os.path.abspath(x))
-    hydra.initialize("./conf", version_base=None)
-    cfg_model = hydra.compose("model.yaml")
-    cfg = hydra.compose("online.yaml")
-    cfg.image_size = [int(cfg.image_size), int(cfg.image_size)]
-    objects_names = cfg.objects_names.split(",")
-    objects_names = natsort.natsorted(objects_names)
-    robot_flange_in_tcp = [float(num) for num in cfg.robot_flange_in_tcp.split(",")]
 
-    parser = argparse.ArgumentParser()
-    # add parser argument for model.encode_image
-    parser.add_argument("--encode_image", default="true", help="encode image")
-    parser.add_argument("--encode_tactile", default="false", help="encode tactile")
-    args = parser.parse_args()
-    OmegaConf.register_new_resolver(
-        "encode_tactile",
-        lambda x: True if args.encode_tactile.lower() == "true" else False,
-    )
-    OmegaConf.register_new_resolver(
-        "encode_image", lambda x: True if args.encode_image.lower() == "true" else False
-    )
-
-    # initialize devices
-    ## robot
-    robot = RobotClient("/robot_io_ros_server")
-    start_pos = robot.get_state()["tcp_pos"]
-    start_rot = robot.get_state()["tcp_orn"]
-    start_pos_up = [start_pos[0], start_pos[1], 0.1]
-    if start_pos[2] < 0.1:
-        robot.move_cart_pos_abs_ptp(start_pos_up, eulertoquat(FIXED_ROBOT_ORN))
-        print("raised robot")
-    else:
-        robot.move_cart_pos_abs_ptp(
-            start_pos, eulertoquat(FIXED_ROBOT_ORN)
-        )  # reset robot orientation
-        start_rot = FIXED_ROBOT_ORN  # update start_rot
-        print("oriented robot")
-    time.sleep(1)
-    start_pos = 1 * robot.get_state()["tcp_pos"][:3]  # update start pos
-    print("robot_reset done")
-    ## reskin
-    sensor_settings = ReSkinSettings(
-        num_mags=5, port="/dev/ttyACM0", baudrate=115200, burst_mode=True, device_id=1
-    )
-    ## camera
-    camera = Realsense(img_type="rgb_depth")
-    projection_matrix = camera.get_projection_matrix()
-    resolution = np.reshape(
-        np.array([camera.get_intrinsics()["width"], camera.get_intrinsics()["height"]]),
-        (-1, 1),
-    )
-    del camera
-    sensor_process = ReSkinProcess(sensor_settings)
-    sensor_process.start()
-    time.sleep(1)
-    ## gpu
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # load model
-    reskin_mean = np.load(
-        f"{cfg.model_path}/{cfg.model_id}/reskin_scaling_mean.npy", allow_pickle=True
-    )
-    reskin_std = np.load(
-        f"{cfg.model_path}/{cfg.model_id}/reskin_scaling_std.npy", allow_pickle=True
-    )
-    images_mean = np.load(
-        f"{cfg.model_path}/{cfg.model_id}/images_scaling_mean.npy", allow_pickle=True
-    )
-    images_std = np.load(
-        f"{cfg.model_path}/{cfg.model_id}/images_scaling_std.npy", allow_pickle=True
-    )
-    # reskin_quantile = load(
-    #     open(f"{cfg.model_path}/{cfg.model_id}/reskin_scaling_quantile.pkl", "rb")
-    # )
-    # images_quantile = load(
-    #     open(f"{cfg.model_path}/{cfg.model_id}/images_scaling_quantile.pkl", "rb")
-    # )
-    model = hydra.utils.instantiate(cfg_model).to(device)
-    model.load_state_dict(torch.load(f"{cfg.model_path}/{cfg.model_id}/ae_model"))
-
+def meta_script_init():
     # script variables and counters/flags initializations
     C = 0  # contacts counter
     p_o_graph = []
@@ -149,6 +69,74 @@ if __name__ == "__main__":
     pcd_trees = []
     pcd_safe_trees = []
     pcd_safe_array = []
+    return (
+        C,
+        p_o_graph,
+        votes_graph,
+        touches_distances_cum,
+        vote,
+        touches_distances_log,
+        p_o_update,
+        p_o,
+        p_o_probability,
+        condition_1,
+        condition_2,
+        condition_3,
+        condition_4,
+        unreachable_target_point,
+        ambient_recording,
+        reskin_recording,
+        pcd_trees,
+        pcd_safe_trees,
+        pcd_safe_array,
+    )
+
+
+if __name__ == "__main__":
+    # script configurations
+    hydra.initialize("../src/task/cfg", version_base=None)
+    cfg_model = hydra.compose("model.yaml")
+    cfg = hydra.compose("online.yaml")
+    cfg.image_size = [int(cfg.image_size), int(cfg.image_size)]
+    objects_names = cfg.objects_names.split(",")
+    objects_names = natsort.natsorted(objects_names)
+    robot_flange_in_tcp = [float(num) for num in cfg.robot_flange_in_tcp.split(",")]
+
+    parser = argparse.ArgumentParser()
+    # add parser argument for model.encode_image
+    args = parser.parse_args()
+
+    (
+        C,
+        p_o_graph,
+        votes_graph,
+        touches_distances_cum,
+        vote,
+        touches_distances_log,
+        p_o_update,
+        p_o,
+        p_o_probability,
+        condition_1,
+        condition_2,
+        condition_3,
+        condition_4,
+        unreachable_target_point,
+        ambient_recording,
+        reskin_recording,
+        pcd_trees,
+        pcd_safe_trees,
+        pcd_safe_array,
+    ) = meta_script_init()
+    # (
+    #     robot,
+    #     sensor_process,
+    #     camera,
+    #     projection_matrix,
+    #     resolution,
+    #     start_pos,
+    #     start_rot,
+    #     start_pos_up,
+    # ) = init_devices()
 
     # process task pcds
     ## loading pcds

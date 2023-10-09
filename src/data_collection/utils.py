@@ -365,10 +365,3 @@ def point_cloud_info(pcd, display=False):
         print("x max " + str(np.max(xs)))
         print("y max " + str(np.max(ys)))
     return xs, ys, zs
-
-
-def search_folder(start_path, target_folder):
-    for dirpath, dirnames, filenames in os.walk(start_path):
-        if target_folder in dirnames:
-            return os.path.join(dirpath, target_folder)
-    return None

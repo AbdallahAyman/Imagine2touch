@@ -203,14 +203,14 @@ if __name__ == "__main__":
         # cv2.waitKey(0)
 
         # ####################wait for transforms to be calculated###############################################
-        while frame_util._T_camera_in_world is None:
+        while frame_util._T_camera_in_socket is None:
             print("transform is none")
             continue
         print("transform calculated")
         time.sleep(0.1)
         T_tcp_in_robot = robot.get_tcp_pose()
         T_wcamera_in_tcp = inverse_transform(T_tcp_in_robot).dot(
-            WORLD_IN_ROBOT.dot(frame_util._T_camera_in_world)
+            WORLD_IN_ROBOT.dot(frame_util._T_camera_in_socket)
         )
         # #####################################################################################################
 
