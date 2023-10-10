@@ -10,7 +10,7 @@ import os
 from robot_io.cams.realsense.realsense import Realsense
 from robot_io.utils.utils import pos_orn_to_matrix
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
-from src.localizers.cam_localizer import (
+from src.localizers.aruco_cam_robot_world_localizer import (
     FrameUtil,
 )  # used to get transforms in the experiment setting
 from src.utils.utils import (

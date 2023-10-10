@@ -1,12 +1,12 @@
 from PIL import Image
 import os
 import hydra
-from src.utils.data_utils import search_folder
+from src.utils.utils import search_folder
 
 if __name__ == "__main__":
     # script meta data, configuration and constants
     start_path = "/"
-    hydra.initialize("../conf", version_base=None)
+    hydra.initialize("../cfg", version_base=None)
     cfg = hydra.compose("collection.yaml")
     cfg.repository_directory = search_folder(start_path, cfg.repository_directory)
     cfg.experiment_directory = f"{cfg.repository_directory}/{cfg.experiment_directory}"

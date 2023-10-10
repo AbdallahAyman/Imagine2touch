@@ -1,5 +1,5 @@
 # Specific modules
-from src.localizers.cam_localizer import (
+from src.localizers.aruco_cam_robot_world_localizer import (
     FrameUtil,
 )  # Used to get transforms in the environment setting
 from test_point_cloud_filter import (

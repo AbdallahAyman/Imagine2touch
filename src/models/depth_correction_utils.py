@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import cv2
 from src.utils.utils import get_target_images, rgb2gray
@@ -31,8 +32,12 @@ def get_rgb_depth(cfg, object_names):
     path_target = []
     path_rgb = []
     for p in object_names:
-        path_target.append(f"{cfg.experiment_dir}/{p}/{p}_images/depth")
-        path_rgb.append(f"{cfg.experiment_dir}/{p}/{p}_images/rgb")
+        path_target.append(
+            f"{cfg.repository_directory}/{cfg.experiment_dir}/{p}/{p}_images/depth"
+        )
+        path_rgb.append(
+            f"{cfg.repository_directory}/{cfg.experiment_dir}/{p}/{p}_images/rgb"
+        )
     target_images = get_target_images(path_target, "depth", cfg.image_size)
     target_images = np.asarray(target_images, dtype=np.uint8)
     target_images_length = target_images.shape[0]

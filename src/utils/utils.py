@@ -47,11 +47,17 @@ WORLD_IN_ROBOT = np.asarray(
 )  # recorded manually
 ROBOT_IN_WORLD = inverse_transform(WORLD_IN_ROBOT)
 # Estimated with apriltag_detector.py followed by cam_calibration_optimization.py
-WCAMERA_IN_TCP = np.load(f"{dir_path}/utils_data/wcamera_tcp_transform.npy", allow_pickle=True)
+WCAMERA_IN_TCP = np.load(
+    f"{dir_path}/utils_data/wcamera_tcp_transform.npy", allow_pickle=True
+)
 # Recorded with Kinect Tripod.
-WORLD_IN_CAMERA = np.load(f"{dir_path}/utils_data/world_camera_transform.npy", allow_pickle=True)
+WORLD_IN_CAMERA = np.load(
+    f"{dir_path}/utils_data/world_camera_transform.npy", allow_pickle=True
+)
 # Recorded with Kinect Tripod.
-CAMERA_IN_ROBOT = np.load(f"{dir_path}/utils_data/camera_robot_transform.npy", allow_pickle=True)
+CAMERA_IN_ROBOT = np.load(
+    f"{dir_path}/utils_data/camera_robot_transform.npy", allow_pickle=True
+)
 # Aruco marker for the world, physical measurement.
 WORLD_IN_MARKER = pos_orn_to_matrix([-0.35, -0.04, 0.035], [0, 0, 0.5 * np.pi])
 # Aruco marker for the robot, physical measurement.
@@ -871,15 +877,18 @@ def crop_center(img, cropx, cropy):
 
 def get_target_images(path, type, size, reconstructed=False, target_masks=None):
     if type == "masks" and not reconstructed:
-        path = [p + "masks" for p in path]
+        if not any("masks" in s for s in path):
+            path = [p + "masks" for p in path]
         return get_target_masks(path, size)
     elif (
         type == "processed_depth" or type == "masked_depth_processed"
     ) and not reconstructed:
-        path = [p + "depth_processed" for p in path]
+        if not any("depth_processed" in s for s in path):
+            path = [p + "depth_processed" for p in path]
         return get_depth_processed(path, size)
     elif type == "depth" and not reconstructed:
-        path = [p + "depth" for p in path]
+        if not any("depth" in s for s in path):
+            path = [p + "depth" for p in path]
     else:
         pass
     regex = re.compile(f"experiment_.*_{type}_.*")

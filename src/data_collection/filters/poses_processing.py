@@ -5,17 +5,16 @@ import os
 from omegaconf import OmegaConf
 
 # repo modules
-from src.utils.utils import WORLD_IN_ROBOT, WCAMERA_IN_TCP
+from src.utils.utils import WORLD_IN_ROBOT, WCAMERA_IN_TCP, search_folder
 from src.utils.data_utils import (
     get_object_transforms_camera_in_world,
     get_spatial_info,
-    search_folder,
 )
 
 if __name__ == "__main__":
     # script meta data, configuration and constants
     start_path = "/"
-    hydra.initialize("../conf", version_base=None)
+    hydra.initialize("../cfg", version_base=None)
     cfg = hydra.compose("collection.yaml")
     cfg.repository_directory = search_folder(start_path, cfg.repository_directory)
     cfg.experiment_directory = f"{cfg.repository_directory}/{cfg.experiment_directory}"

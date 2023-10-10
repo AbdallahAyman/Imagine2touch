@@ -12,10 +12,13 @@ import os
 from PIL import Image
 
 # repo modules
-from src.utils.utils import WCAMERA_IN_TCP
+from src.utils.utils import WCAMERA_IN_TCP, search_folder
 
 # relative modules
-from src.utils.model_depth_correction_utils import get_rgb_depth, apply_depth_correction
+from src.models.depth_correction_utils import (
+    get_rgb_depth,
+    apply_depth_correction,
+)
 
 
 # utilities
@@ -188,9 +191,9 @@ def main(cfg, cam_z_distance):
 
 if __name__ == "__main__":
     # configuration
-    OmegaConf.register_new_resolver("path", lambda x: os.path.abspath(x))
-    hydra.initialize("./conf", version_base=None)
+    hydra.initialize("./cfg", version_base=None)
     cfg = hydra.compose("generate_masks.yaml")
+    cfg.repository_directory = search_folder("/", "pseudo_touch")
     cfg.image_size = [int(cfg.image_size), int(cfg.image_size)]
     cam_z_distance = (
         cfg.masks.tcp_z_distance + -cfg.masks.wcamera_in_tcp_z

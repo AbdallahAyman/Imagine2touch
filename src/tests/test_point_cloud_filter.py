@@ -7,7 +7,7 @@ from PIL import Image
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
 import src.utils.utils as utils
 from robot_io.cams.realsense.realsense import Realsense
-from src.localizers.cam_localizer import (
+from src.localizers.aruco_cam_robot_world_localizer import (
     FrameUtil,
 )  # Used to get transforms in the environment setting
 from robot_io.cams.kinect4.kinect4 import Kinect4

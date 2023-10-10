@@ -2,7 +2,7 @@ from PIL import Image
 import os
 import cv2
 import hydra
-from src.utils.data_utils import search_folder
+from src.utils.utils import search_folder
 
 module_dir = os.path.dirname(__file__)  # get current directory
 files = os.listdir(module_dir)
@@ -10,7 +10,7 @@ files = os.listdir(module_dir)
 if __name__ == "__main__":
     # script meta data, configuration and constants
     start_path = "/"
-    hydra.initialize("../conf", version_base=None)
+    hydra.initialize("../cfg", version_base=None)
     cfg = hydra.compose("collection.yaml")
     cfg.repository_directory = search_folder(start_path, cfg.repository_directory)
     cfg.experiment_directory = f"{cfg.repository_directory}/{cfg.experiment_directory}"

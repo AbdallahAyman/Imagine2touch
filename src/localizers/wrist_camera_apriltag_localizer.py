@@ -2,7 +2,10 @@
 from pathlib import Path
 import numpy as np
 import cv2
-from src.task.save_pcds_extra_views import custom_wait
+from src.task.save_pcds_extra_views import (
+    custom_wait,
+    wait_until_stable_joint_velocities,
+)
 from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
 import rospy
 import hydra
@@ -17,6 +20,7 @@ from src.utils.utils import (
     WORLD_IN_ROBOT,
     FIXED_ROBOT_ORN,
     eulertoquat,
+    search_folder,
 )
 from robot_io.cams.realsense.realsense import Realsense
 from robot_io.marker_detection.core.board_detector import BoardDetector
@@ -79,8 +83,8 @@ class ApriltagDetector:
 
 if __name__ == "__main__":
     # script configurations
-    OmegaConf.register_new_resolver("path", lambda x: os.path.abspath(x))
-    hydra.initialize("./conf", version_base=None)
+    repository_directory = search_folder("/", "pseudo_touch")
+    hydra.initialize("./cfg", version_base=None)
     cfg = hydra.compose("wrist.yaml")
     starting_corner_in_world = [
         float(num) for num in cfg.starting_corner_in_world.split(",")
@@ -152,23 +156,23 @@ if __name__ == "__main__":
         tcp_robot_transforms.append(T_tcp_in_robot)
         i = i + 1
         np.save(
-            f"{cfg.save_directory}/wcamera_marker_transforms",
+            f"{repository_directory}/{cfg.save_directory}/wcamera_marker_transforms",
             cam_marker_transforms,
             allow_pickle=True,
         )
         np.save(
-            f"{cfg.save_directory}/robot_tcp_transforms",
+            f"{repository_directory}/{cfg.save_directory}/robot_tcp_transforms",
             tcp_robot_transforms,
             allow_pickle=True,
         )
     # save transforms
     np.save(
-        f"{cfg.save_directory}/wcamera_marker_transforms",
+        f"{repository_directory}/{cfg.save_directory}/wcamera_marker_transforms",
         cam_marker_transforms,
         allow_pickle=True,
     )
     np.save(
-        f"{cfg.save_directory}/robot_tcp_transforms",
+        f"{repository_directory}/{cfg.save_directory}/robot_tcp_transforms",
         tcp_robot_transforms,
         allow_pickle=True,
     )

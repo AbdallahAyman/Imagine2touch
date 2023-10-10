@@ -1,7 +1,7 @@
 import os
 import open3d as o3d
 import numpy as np
-from src.utils.data_utils import search_folder
+from src.utils.utils import search_folder
 from src.task.process_pcd_extremeties import point_cloud_info
 
 if __name__ == "__main__":
@@ -19,9 +19,9 @@ if __name__ == "__main__":
     b = input("Enter the upper limit on the negative side: ")
     b = float(b)
 
-    path = search_folder("/", "touch2image")
+    path = search_folder("/", "pseudo_touch")
     point_cloud = o3d.io.read_point_cloud(
-        f"{path}/reskin/data_collection/data/{object_name}/pcds/experiment_{num}_combined.pcd"
+        f"{path}/src/data_collection/data/{object_name}/pcds/experiment_{num}_combined.pcd"
     )
     point_cloud_info(point_cloud, display=True)
 
@@ -58,10 +58,13 @@ if __name__ == "__main__":
     save = input("save the point cloud? (y/n):")
     if save == "y":
         # # delete the old file
-        os.remove(f"{path}/data/{object_name}/pcds/experiment_{num}_combined.pcd")
+        os.remove(
+            f"{path}/src/data_collection/data/{object_name}/pcds/experiment_{num}_combined.pcd"
+        )
         # Save the point cloud as a .pcd file
         o3d.io.write_point_cloud(
-            f"{path}/data/{object_name}/pcds/experiment_{num}_combined.pcd", point_cloud
+            f"{path}/src/data_collection/data/{object_name}/pcds/experiment_{num}_combined.pcd",
+            point_cloud,
         )
     else:
         print("point cloud not saved")

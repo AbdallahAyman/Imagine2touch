@@ -2,14 +2,15 @@ import sys
 from scipy.optimize import minimize, rosen, rosen_der
 from robot_io.utils.utils import pos_orn_to_matrix, matrix_to_pos_orn, matrix_to_orn
 import numpy as np
-from src.utils.utils import inverse_transform, WORLD_IN_ROBOT
+from src.utils.utils import inverse_transform, WORLD_IN_ROBOT, search_folder
 from omegaconf import OmegaConf
 import hydra
 import os
 
 # script configurations
 OmegaConf.register_new_resolver("path", lambda x: os.path.abspath(x))
-hydra.initialize("./conf", version_base=None)
+hydra.initialize("./cfg", version_base=None)
+repository_directory = search_folder("/", "pseudo_touch")
 cfg = hydra.compose("wrist.yaml")
 starting_corner_in_world = [
     float(num) for num in cfg.starting_corner_in_world.split(",")
@@ -17,9 +18,13 @@ starting_corner_in_world = [
 OmegaConf.register_new_resolver("quarter_pi", lambda x: np.pi / 4)
 
 T_wcamera_in_marker = np.load(
-    "./utils/wcamera_marker_transforms.npy", allow_pickle=True
+    f"{repository_directory}/src/utils/utils_data/wcamera_marker_transforms.npy",
+    allow_pickle=True,
 )
-T_tcp_in_robot = np.load("./utils/robot_tcp_transforms.npy", allow_pickle=True)
+T_tcp_in_robot = np.load(
+    f"{repository_directory}/src/utils/utils_data/robot_tcp_transforms.npy",
+    allow_pickle=True,
+)
 T_wcamera_marker_filtered = T_wcamera_in_marker
 j = 0
 indeces = []

@@ -1,3 +1,4 @@
+repository_directory: pseudo_touch
 experiment_directory: src/data_collection/data
 object_name: cylinder
 new_experiment: False
