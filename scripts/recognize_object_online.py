@@ -1,5 +1,5 @@
 if False:
-    from robot_io_ros.src.robot_io_ros.robot_io_client import RobotClient
+    from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
     from robot_io.utils.utils import pos_orn_to_matrix
     from robot_io.cams.realsense.realsense import Realsense
     import rospy
@@ -8,8 +8,12 @@ if False:
 # repo modules
 import argparse
 from scripts.collect_data import init_devices
-from src.utils.task_utils import mask_from_depth_mesh, normalize_p, update_po
-from src.utils.utils import (
+from src.pseudo_touch.utils.task_utils import (
+    mask_from_depth_mesh,
+    normalize_p,
+    update_po,
+)
+from src.pseudo_touch.utils.utils import (
     load_normals,
     safety_one,
     safety_two,
@@ -30,8 +34,8 @@ from src.utils.utils import (
     WCAMERA_IN_TCP,
     inverse_transform,
 )
-from src.task.reconstruct_pcd import get_crops
-from src.reskin_sensor.reskin_sensor.sensor_proc import ReSkinProcess
+from src.pseudo_touch.task.reconstruct_pcd import get_crops
+from src.pseudo_touch.reskin_sensor.reskin_sensor.sensor_proc import ReSkinProcess
 
 # standard libraries
 import time
@@ -94,7 +98,7 @@ def meta_script_init():
 
 if __name__ == "__main__":
     # script configurations
-    hydra.initialize("../src/task/cfg", version_base=None)
+    hydra.initialize("../src/pseudo_touch/task/cfg", version_base=None)
     cfg_model = hydra.compose("model.yaml")
     cfg = hydra.compose("online.yaml")
     cfg.image_size = [int(cfg.image_size), int(cfg.image_size)]

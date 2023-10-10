@@ -1,0 +1,10 @@
+repo_directory: "pseudo_touch"
+data_path: "src/pseudo_touch/data_collection/data"
+model_id: 3
+reconstructed_data_path: src/pseudo_touch/models/pseudo_touch_models/${model_id}
+object_names: flower # single object for data_visualizer
+image_size: 48
+binary: True
+aggregated_ambient: False
+ambient_every_contact: False
+return_reskin_filter: False

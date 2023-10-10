@@ -2,7 +2,7 @@
 import argparse
 import shutil
 import sys
-from src.utils.utils import search_folder
+from src.pseudo_touch.utils.utils import search_folder
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
@@ -15,16 +15,16 @@ from omegaconf import OmegaConf
 import matplotlib.pyplot as plt
 
 # relative modules
-from src.utils.model_utils import (
+from src.pseudo_touch.utils.model_utils import (
     preprocess_object_data,
     infer,
     save_tactile,
     train_touch_to_image,
     reorder_shuffled,
 )
-from src.utils.model_models import pseudo_touch_model
-from src.reskin_calibration import dataset
-from src.utils.utils import NotAdaptedError
+from src.pseudo_touch.models.models import pseudo_touch_model
+from src.pseudo_touch.reskin_calibration import dataset
+from src.pseudo_touch.utils.utils import NotAdaptedError
 
 
 def parse_arguments():
@@ -72,7 +72,7 @@ def init_config():
     )
     OmegaConf.register_new_resolver("rgb_gray_factor", lambda x: 1 if x else 3)
     # load script configurations
-    hydra.initialize("../src/models/cfg", version_base=None)
+    hydra.initialize("../src/pseudo_touch/models/cfg", version_base=None)
     cfg = hydra.compose("trainae.yaml")
     cfg_masks = hydra.compose("generate_masks.yaml")
     return cfg, cfg_masks
