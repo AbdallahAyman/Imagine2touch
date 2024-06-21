@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Function
 
-from src.pseudo_touch.utils.utils import NotAdaptedError
+from src.imagine2touch.utils.utils import NotAdaptedError
 
 
 class simpleMLP(nn.Module):
@@ -83,7 +83,7 @@ class vanilla_model(nn.Module):
 
 
 # credit to https://medium.com/pytorch/implementing-an-autoencoder-in-pytorch-19baa22647d1
-class pseudo_touch_model(nn.Module):
+class imagine2touch_model(nn.Module):
     def __init__(
         self,
         tactile_decoder_hidden,

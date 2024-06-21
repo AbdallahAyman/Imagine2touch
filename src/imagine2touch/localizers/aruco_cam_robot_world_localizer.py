@@ -11,12 +11,12 @@ import cv2.aruco as aruco
 from robot_io.input_devices.space_mouse import SpaceMouse
 
 # from robot_io.robot_interface.iiwa_interface  import IIWAInterface
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
 from robot_io.cams.kinect4.kinect4 import Kinect4
 from robot_io.cams.realsense.realsense import Realsense
 from robot_io.marker_detection.aruco_detector import ArucoDetector
 from robot_io.utils.utils import pos_orn_to_matrix, matrix_to_pos_orn
-from src.pseudo_touch.utils import utils
+from src.imagine2touch.utils import utils
 
 
 # Constants

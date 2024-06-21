@@ -130,12 +130,12 @@ dmypy.json
 .vscode/launch.json
 
 # add data to gitignore
-src/pseudo_touch/data_collection/data
-src/pseudo_touch/reskin_calibration/calibration_data
-src/pseudo_touch/task/task_data
-src/pseudo_touch/tests/dummy_data
-src/pseudo_touch/utils/utils_data
-src/pseudo_touch/visualization/visualization_data
+src/imagine2touch/data_collection/data
+src/imagine2touch/reskin_calibration/calibration_data
+src/imagine2touch/task/task_data
+src/imagine2touch/tests/dummy_data
+src/imagine2touch/utils/utils_data
+src/imagine2touch/visualization/visualization_data
 
 # add wandb to gitignore
 wandb

@@ -1,7 +1,7 @@
 from PIL import Image
 import os
 import hydra
-from src.pseudo_touch.utils.utils import search_folder
+from src.imagine2touch.utils.utils import search_folder
 
 if __name__ == "__main__":
     # script meta data, configuration and constants

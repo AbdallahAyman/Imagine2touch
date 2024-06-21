@@ -1,22 +1,22 @@
 # repo modules
 if False:
     import rospy
-    from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
+    from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
     from robot_io.cams.realsense.realsense import Realsense
     from robot_io.utils.utils import pos_orn_to_matrix
-    from src.pseudo_touch.task.save_pcds_extra_views import (
+    from src.imagine2touch.task.save_pcds_extra_views import (
         wait_until_stable_joint_velocities,
     )
-    from src.pseudo_touch.localizers.wrist_camera_localizer import (
+    from src.imagine2touch.localizers.wrist_camera_localizer import (
         generate_step_orientation,
         generate_step_pos,
     )
-    from src.pseudo_touch.task.save_pcds_extra_views import (
+    from src.imagine2touch.task.save_pcds_extra_views import (
         wait_until_stable_joint_velocities,
     )
 
-from src.pseudo_touch.reskin_sensor.reskin_sensor.sensor_proc import ReSkinProcess
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.reskin_sensor.reskin_sensor.sensor_proc import ReSkinProcess
+from src.imagine2touch.utils.utils import (
     FIXED_ROBOT_ORN,
     ROBOT_IN_WORLD,
     WORLD_IN_ROBOT,
@@ -37,7 +37,7 @@ from src.pseudo_touch.utils.utils import (
     filter_reskin,
     search_folder,
 )
-from src.pseudo_touch.utils.data_utils import (
+from src.imagine2touch.utils.data_utils import (
     safety_one,
     safety_two,
     safety_three,
@@ -59,14 +59,14 @@ import hydra
 from omegaconf import OmegaConf
 import sys
 
-repo_path = search_folder("/", "pseudo_touch")
+repo_path = search_folder("/", "imagine2touch")
 
 
 def meta_script_init():
     # script meta data, configuration and constants
     OmegaConf.register_new_resolver("quarter_pi", lambda x: np.pi / 4)
     # remove leading slash from string
-    hydra.initialize("../src/pseudo_touch/data_collection/cfg", version_base=None)
+    hydra.initialize("../src/imagine2touch/data_collection/cfg", version_base=None)
     cfg = hydra.compose("collection.yaml")
     robot_flange_in_tcp = [float(num) for num in cfg.robot_flange_in_tcp.split(",")]
     N = cfg.N - 1  # counting from 0

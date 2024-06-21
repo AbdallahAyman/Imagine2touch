@@ -1,8 +1,8 @@
 import os
 import open3d as o3d
 import numpy as np
-from src.pseudo_touch.utils.utils import search_folder
-from src.pseudo_touch.task.process_pcd_extremeties import point_cloud_info
+from src.imagine2touch.utils.utils import search_folder
+from src.imagine2touch.task.process_pcd_extremeties import point_cloud_info
 
 if __name__ == "__main__":
     # take object name from user input interactively
@@ -19,9 +19,9 @@ if __name__ == "__main__":
     b = input("Enter the upper limit on the negative side: ")
     b = float(b)
 
-    path = search_folder("/", "pseudo_touch")
+    path = search_folder("/", "imagine2touch")
     point_cloud = o3d.io.read_point_cloud(
-        f"{path}/src/pseudo_touch/data_collection/data/{object_name}/pcds/experiment_{num}_combined.pcd"
+        f"{path}/src/imagine2touch/data_collection/data/{object_name}/pcds/experiment_{num}_combined.pcd"
     )
     point_cloud_info(point_cloud, display=True)
 
@@ -59,11 +59,11 @@ if __name__ == "__main__":
     if save == "y":
         # # delete the old file
         os.remove(
-            f"{path}/src/pseudo_touch/data_collection/data/{object_name}/pcds/experiment_{num}_combined.pcd"
+            f"{path}/src/imagine2touch/data_collection/data/{object_name}/pcds/experiment_{num}_combined.pcd"
         )
         # Save the point cloud as a .pcd file
         o3d.io.write_point_cloud(
-            f"{path}/src/pseudo_touch/data_collection/data/{object_name}/pcds/experiment_{num}_combined.pcd",
+            f"{path}/src/imagine2touch/data_collection/data/{object_name}/pcds/experiment_{num}_combined.pcd",
             point_cloud,
         )
     else:

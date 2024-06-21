@@ -1,9 +1,9 @@
 # repo modules
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
 from robot_io.cams.realsense.realsense import Realsense
 from robot_io.utils.utils import pos_orn_to_matrix
-from src.pseudo_touch.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
+from src.imagine2touch.utils.utils import (
     FIXED_ROBOT_ORN,
     HOME_POSE,
     VIEWS,

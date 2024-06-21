@@ -2,8 +2,8 @@ image_size: 48
 # object_name: "hexagon,star,flower,parallelogram,cutter"
 object_name: "square"
 save: True
-repository_directory: pseudo_touch
-experiment_dir: src/pseudo_touch/data_collection/data
+repository_directory: imagine2touch
+experiment_dir: src/imagine2touch/data_collection/data
 # experiment_dir: ${path:"Archive"}
 masks:
   use_min_depth: True

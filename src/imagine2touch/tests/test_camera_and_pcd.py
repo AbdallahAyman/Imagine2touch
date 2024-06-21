@@ -5,13 +5,13 @@ import numpy as np
 from PIL import Image
 from robot_io.cams.realsense.realsense import Realsense
 from sklearn.preprocessing import MinMaxScaler
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     inverse_transform,
     ROBOT_IN_WORLD,
     WCAMERA_IN_TCP,
     point_cloud_info,
 )
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
 
 
 robot = RobotClient("/robot_io_ros_server")

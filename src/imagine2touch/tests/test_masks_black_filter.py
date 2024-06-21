@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import sys
 
 # repo modules
-from src.pseudo_touch.utils.model_utils import preprocess_object_data
+from src.imagine2touch.utils.model_utils import preprocess_object_data
 
 
 def is_image_informative(cfg, image, n_pixels=100):

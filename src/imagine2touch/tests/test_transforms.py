@@ -2,11 +2,11 @@
 import sys
 import time
 import numpy as np
-from src.pseudo_touch.utils.data_utils import safety_three
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
+from src.imagine2touch.utils.data_utils import safety_three
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
 from scipy.spatial.transform import Rotation
 from robot_io.utils.utils import pos_orn_to_matrix, matrix_to_pos_orn, euler_to_quat
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     WCAMERA_IN_TCP,
     euler_from_vector,
     WORLD_IN_ROBOT,

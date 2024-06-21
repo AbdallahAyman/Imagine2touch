@@ -1,4 +1,4 @@
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
 
 # initialize robot
 

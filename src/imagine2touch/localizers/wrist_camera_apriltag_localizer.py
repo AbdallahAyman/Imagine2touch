@@ -2,11 +2,11 @@
 from pathlib import Path
 import numpy as np
 import cv2
-from src.pseudo_touch.task.save_pcds_extra_views import (
+from src.imagine2touch.task.save_pcds_extra_views import (
     custom_wait,
     wait_until_stable_joint_velocities,
 )
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
 import rospy
 import hydra
 from omegaconf import OmegaConf
@@ -16,7 +16,7 @@ import sys
 
 # Import repo modules
 from robot_io.cams.realsense.realsense import Realsense
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     WORLD_IN_ROBOT,
     FIXED_ROBOT_ORN,
     eulertoquat,
@@ -25,7 +25,7 @@ from src.pseudo_touch.utils.utils import (
 from robot_io.cams.realsense.realsense import Realsense
 from robot_io.marker_detection.core.board_detector import BoardDetector
 from robot_io.marker_detection.core.tag_pose_estimator import TagPoseEstimator
-from src.pseudo_touch.localizers.wrist_camera_localizer import (
+from src.imagine2touch.localizers.wrist_camera_localizer import (
     generate_step_pos,
     generate_step_orientation,
 )
@@ -83,7 +83,7 @@ class ApriltagDetector:
 
 if __name__ == "__main__":
     # script configurations
-    repository_directory = search_folder("/", "pseudo_touch")
+    repository_directory = search_folder("/", "imagine2touch")
     hydra.initialize("./cfg", version_base=None)
     cfg = hydra.compose("wrist.yaml")
     starting_corner_in_world = [

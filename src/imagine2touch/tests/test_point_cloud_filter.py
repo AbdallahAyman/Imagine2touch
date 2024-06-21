@@ -4,10 +4,10 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
-import src.pseudo_touch.utils.utils as utils
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
+import src.imagine2touch.utils.utils as utils
 from robot_io.cams.realsense.realsense import Realsense
-from src.pseudo_touch.localizers.aruco_cam_robot_world_localizer import (
+from src.imagine2touch.localizers.aruco_cam_robot_world_localizer import (
     FrameUtil,
 )  # Used to get transforms in the environment setting
 from robot_io.cams.kinect4.kinect4 import Kinect4

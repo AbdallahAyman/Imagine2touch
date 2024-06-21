@@ -1,8 +1,8 @@
 # from robot_io.robot_interface.iiwa_interface  import IIWAInterface, TCP_RESKIN # Used to initialize robot
 import numpy as np
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
 from scipy.spatial.transform import Rotation
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     euler_from_vector,
     threed_vector_to_homog,
     homog_vector_to_3d,

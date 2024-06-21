@@ -1,10 +1,10 @@
 # Use this file to configure the training, validation, test, architecture and visualization of the visuo-tactile model #
 #paths
-repository_dir: "pseudo_touch"
-experiment_dir: src/pseudo_touch/data_collection/data
-test_dir: src/pseudo_touch/data_collection/data
-out: src/pseudo_touch/models/pseudo_touch_models
-model_path: src/pseudo_touch/models/pseudo_touch_models
+repository_dir: "imagine2touch"
+experiment_dir: src/imagine2touch/data_collection/data
+test_dir: src/imagine2touch/data_collection/data
+out: src/imagine2touch/models/imagine2touch_models
+model_path: src/imagine2touch/models/imagine2touch_models
 #data set
 objects_names: "hexagon,parallelogram"
 test_objects_names: "cylinder,star"

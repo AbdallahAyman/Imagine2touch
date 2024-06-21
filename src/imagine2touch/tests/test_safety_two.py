@@ -3,7 +3,7 @@ import open3d as o3d
 import numpy as np
 import math
 
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     create_homog_transformation_from_rotation,
     create_rotation_from_normal,
 )

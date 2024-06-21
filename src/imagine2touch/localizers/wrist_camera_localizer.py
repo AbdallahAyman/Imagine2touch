@@ -9,11 +9,11 @@ import os
 # Import repo modules
 from robot_io.cams.realsense.realsense import Realsense
 from robot_io.utils.utils import pos_orn_to_matrix
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
-from src.pseudo_touch.localizers.aruco_cam_robot_world_localizer import (
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
+from src.imagine2touch.localizers.aruco_cam_robot_world_localizer import (
     FrameUtil,
 )  # used to get transforms in the experiment setting
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     WORLD_IN_ROBOT,
     inverse_transform,
     FIXED_ROBOT_ORN,

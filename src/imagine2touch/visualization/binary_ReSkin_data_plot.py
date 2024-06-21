@@ -1,4 +1,4 @@
-from src.pseudo_touch.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
+from src.imagine2touch.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
 import time
 import signal
 import matplotlib.pyplot as plt

@@ -1,4 +1,4 @@
-save_directory: src/pseudo_touch/utils/utils_data
+save_directory: src/imagine2touch/utils/utils_data
 single: false
 single_view_height: 0.1
 marker_description: "./cfg/marker_36h11b2_3x3x_3cm_two.json"

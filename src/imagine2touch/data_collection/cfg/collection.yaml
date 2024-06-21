@@ -1,5 +1,5 @@
-repository_directory: pseudo_touch
-experiment_directory: src/pseudo_touch/data_collection/data
+repository_directory: imagine2touch
+experiment_directory: src/imagine2touch/data_collection/data
 object_name: cylinder
 new_experiment: False
 copy_experiment: True

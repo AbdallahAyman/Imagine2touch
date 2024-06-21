@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import cv2
-from src.pseudo_touch.utils.utils import get_target_images, rgb2gray
+from src.imagine2touch.utils.utils import get_target_images, rgb2gray
 from tqdm import tqdm
 
 

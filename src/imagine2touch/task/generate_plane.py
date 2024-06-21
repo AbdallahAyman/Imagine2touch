@@ -1,4 +1,4 @@
-import src.pseudo_touch.utils.utils as utils
+import src.imagine2touch.utils.utils as utils
 import numpy as np
 
 if __name__ == "__main__":

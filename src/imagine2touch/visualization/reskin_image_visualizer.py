@@ -5,7 +5,7 @@ import sys
 import os
 import hydra
 from omegaconf import OmegaConf
-from src.pseudo_touch.reskin_calibration import dataset
+from src.imagine2touch.reskin_calibration import dataset
 import seaborn as sns
 from numpy.ma import masked_array
 

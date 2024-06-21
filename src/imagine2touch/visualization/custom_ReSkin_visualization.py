@@ -10,8 +10,8 @@ import os
 
 
 # repo modules
-from src.pseudo_touch.reskin_sensor import ReSkinBase
-from src.pseudo_touch.reskin_calibration import dataset
+from src.imagine2touch.reskin_sensor import ReSkinBase
+from src.imagine2touch.reskin_calibration import dataset
 
 
 def init_pygame():

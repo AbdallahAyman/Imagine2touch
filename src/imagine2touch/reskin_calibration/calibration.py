@@ -2,7 +2,7 @@ import signal
 import time
 import numpy as np
 import yaml
-from src.pseudo_touch.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
+from src.imagine2touch.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 from robot_io.robot_interface.iiwa_interface import (
@@ -12,7 +12,7 @@ from robot_io.robot_interface.iiwa_interface import (
 from robot_io.input_devices.space_mouse import SpaceMouse
 import sys
 import math
-import src.pseudo_touch.utils as utils
+import src.imagine2touch.utils as utils
 
 
 FIXED_ROBOT_ORN = [np.pi, 0, -2.32208689]  # nice orientation of TCP

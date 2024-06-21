@@ -7,7 +7,7 @@ def read(fname):
 
 
 setup(
-    name="pseudo_touch",
+    name="imagine2touch",
     version="1.0.0",
     author="Abdalla Ayad",
     author_email="abdallahayman772@gmail.com",

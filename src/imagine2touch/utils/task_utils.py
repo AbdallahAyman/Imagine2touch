@@ -1,7 +1,7 @@
 # repo modules
-from src.pseudo_touch.utils.utils import cropND
-from src.pseudo_touch.models.generate_gt_masks import mask_far_pixels
-from src.pseudo_touch.models.depth_correction_utils import apply_depth_correction
+from src.imagine2touch.utils.utils import cropND
+from src.imagine2touch.models.generate_gt_masks import mask_far_pixels
+from src.imagine2touch.models.depth_correction_utils import apply_depth_correction
 from robot_io.cams.realsense.realsense import Realsense
 
 # standard libraries

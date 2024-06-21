@@ -12,10 +12,10 @@ import os
 from PIL import Image
 
 # repo modules
-from src.pseudo_touch.utils.utils import WCAMERA_IN_TCP, search_folder
+from src.imagine2touch.utils.utils import WCAMERA_IN_TCP, search_folder
 
 # relative modules
-from src.pseudo_touch.models.depth_correction_utils import (
+from src.imagine2touch.models.depth_correction_utils import (
     get_rgb_depth,
     apply_depth_correction,
 )
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     # configuration
     hydra.initialize("./cfg", version_base=None)
     cfg = hydra.compose("generate_masks.yaml")
-    cfg.repository_directory = search_folder("/", "pseudo_touch")
+    cfg.repository_directory = search_folder("/", "imagine2touch")
     cfg.image_size = [int(cfg.image_size), int(cfg.image_size)]
     cam_z_distance = (
         cfg.masks.tcp_z_distance + -cfg.masks.wcamera_in_tcp_z

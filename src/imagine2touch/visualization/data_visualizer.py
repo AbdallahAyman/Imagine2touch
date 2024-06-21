@@ -3,13 +3,13 @@ import hydra
 from omegaconf import OmegaConf
 import numpy as np
 import cv2
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     get_target_images,
     get_depth_processed,
     get_target_masks,
 )
-from src.pseudo_touch.reskin_calibration import dataset
-from src.pseudo_touch.visualizations.reskin_image_visualizer import (
+from src.imagine2touch.reskin_calibration import dataset
+from src.imagine2touch.visualizations.reskin_image_visualizer import (
     visualize_reskin_image,
 )
 import sys

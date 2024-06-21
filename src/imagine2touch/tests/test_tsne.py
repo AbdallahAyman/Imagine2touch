@@ -22,8 +22,8 @@ from matplotlib.colors import Normalize
 from matplotlib import colors as normcolors
 
 # repo modules
-from src.pseudo_touch.utils.model_utils import preprocess_object_data
-from src.pseudo_touch.visualizations.reskin_image_visualizer import (
+from src.imagine2touch.utils.model_utils import preprocess_object_data
+from src.imagine2touch.visualizations.reskin_image_visualizer import (
     plot_combined_heatmap,
     split_rgb,
     visualize_reskin_image,

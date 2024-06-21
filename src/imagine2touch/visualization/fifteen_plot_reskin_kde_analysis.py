@@ -6,9 +6,9 @@ import hydra
 from omegaconf import OmegaConf
 import matplotlib.pyplot as plt
 from matplotlib import patches
-from src.pseudo_touch.utils.data_utils import search_folder
+from src.imagine2touch.utils.data_utils import search_folder
 import seaborn as sns
-from src.pseudo_touch.reskin_calibration.dataset import (
+from src.imagine2touch.reskin_calibration.dataset import (
     get_ambient_data,
     get_reskin_reading,
 )
@@ -17,7 +17,7 @@ from src.pseudo_touch.reskin_calibration.dataset import (
 if __name__ == "__main__":
     hydra.initialize("./cfg", version_base=None)
     cfg = hydra.compose("dataset.yaml")
-    repo_directory = search_folder("/", "pseudo_touch")
+    repo_directory = search_folder("/", "imagine2touch")
     file_tactile = []
     object_names = cfg.object_names.split(",")
     for object_name in object_names:

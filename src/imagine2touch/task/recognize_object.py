@@ -1,8 +1,8 @@
 # Specific modules
-from src.pseudo_touch.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
+from src.imagine2touch.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
 from robot_io.utils.utils import pos_orn_to_matrix
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     FIXED_ROBOT_ORN,
     eulertoquat,
     move_to_pt_with_v_safe,

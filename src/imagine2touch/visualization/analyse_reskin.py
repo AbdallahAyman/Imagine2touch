@@ -1,6 +1,6 @@
 import matplotlib.cm as cm
 import numpy as np
-from src.pseudo_touch.reskin_calibration.dataset import (
+from src.imagine2touch.reskin_calibration.dataset import (
     get_ambient_data,
     get_reskin_reading,
     subtract_ambient,

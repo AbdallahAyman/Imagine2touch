@@ -1,6 +1,6 @@
 import hydra
 from omegaconf import OmegaConf
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     get_target_images,
     convert_image_to_point_cloud,
     point_cloud_info,

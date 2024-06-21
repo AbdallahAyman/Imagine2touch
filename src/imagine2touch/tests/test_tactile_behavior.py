@@ -1,5 +1,5 @@
 # Specific modules
-from src.pseudo_touch.localizers.aruco_cam_robot_world_localizer import (
+from src.imagine2touch.localizers.aruco_cam_robot_world_localizer import (
     FrameUtil,
 )  # Used to get transforms in the environment setting
 from test_point_cloud_filter import (
@@ -7,10 +7,10 @@ from test_point_cloud_filter import (
     point_cloud_info,
     mask_rgb_and_dep,
 )
-from src.pseudo_touch.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
+from src.imagine2touch.reskin_sensor.sensor_proc import ReSkinProcess, ReSkinSettings
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
 from robot_io.cams.realsense.realsense import Realsense
-from src.pseudo_touch.utils import (
+from src.imagine2touch.utils import (
     add_ee,
     FIXED_ROBOT_ORN,
     inverse_transform,

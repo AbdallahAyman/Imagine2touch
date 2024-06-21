@@ -5,8 +5,8 @@ import os
 from omegaconf import OmegaConf
 
 # repo modules
-from src.pseudo_touch.utils.utils import WORLD_IN_ROBOT, WCAMERA_IN_TCP, search_folder
-from src.pseudo_touch.utils.data_utils import (
+from src.imagine2touch.utils.utils import WORLD_IN_ROBOT, WCAMERA_IN_TCP, search_folder
+from src.imagine2touch.utils.data_utils import (
     get_object_transforms_camera_in_world,
     get_spatial_info,
 )

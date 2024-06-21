@@ -19,14 +19,14 @@ import torchvision
 
 
 # repo modules
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     NotAdaptedError,
     get_target_images,
     rgb2gray,
     get_target_masks,
     get_depth_processed,
 )
-from src.pseudo_touch.reskin_calibration import dataset
+from src.imagine2touch.reskin_calibration import dataset
 
 
 def save_tactile(

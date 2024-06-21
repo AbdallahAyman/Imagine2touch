@@ -2,7 +2,7 @@ import sys
 from scipy.optimize import minimize, rosen, rosen_der
 from robot_io.utils.utils import pos_orn_to_matrix, matrix_to_pos_orn, matrix_to_orn
 import numpy as np
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     inverse_transform,
     WORLD_IN_ROBOT,
     search_folder,
@@ -14,7 +14,7 @@ import os
 # script configurations
 OmegaConf.register_new_resolver("path", lambda x: os.path.abspath(x))
 hydra.initialize("./cfg", version_base=None)
-repository_directory = search_folder("/", "pseudo_touch")
+repository_directory = search_folder("/", "imagine2touch")
 cfg = hydra.compose("wrist.yaml")
 starting_corner_in_world = [
     float(num) for num in cfg.starting_corner_in_world.split(",")
@@ -22,11 +22,11 @@ starting_corner_in_world = [
 OmegaConf.register_new_resolver("quarter_pi", lambda x: np.pi / 4)
 
 T_wcamera_in_marker = np.load(
-    f"{repository_directory}/src/pseudo_touch/utils/utils_data/wcamera_marker_transforms.npy",
+    f"{repository_directory}/src/imagine2touch/utils/utils_data/wcamera_marker_transforms.npy",
     allow_pickle=True,
 )
 T_tcp_in_robot = np.load(
-    f"{repository_directory}/src/pseudo_touch/utils/utils_data/robot_tcp_transforms.npy",
+    f"{repository_directory}/src/imagine2touch/utils/utils_data/robot_tcp_transforms.npy",
     allow_pickle=True,
 )
 T_wcamera_marker_filtered = T_wcamera_in_marker

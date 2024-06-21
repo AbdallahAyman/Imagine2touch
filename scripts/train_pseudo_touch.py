@@ -2,7 +2,7 @@
 import argparse
 import shutil
 import sys
-from src.pseudo_touch.utils.utils import search_folder
+from src.imagine2touch.utils.utils import search_folder
 import torch
 from torch.utils.data import DataLoader
 import numpy as np
@@ -15,16 +15,16 @@ from omegaconf import OmegaConf
 import matplotlib.pyplot as plt
 
 # relative modules
-from src.pseudo_touch.utils.model_utils import (
+from src.imagine2touch.utils.model_utils import (
     preprocess_object_data,
     infer,
     save_tactile,
     train_touch_to_image,
     reorder_shuffled,
 )
-from src.pseudo_touch.models.models import pseudo_touch_model
-from src.pseudo_touch.reskin_calibration import dataset
-from src.pseudo_touch.utils.utils import NotAdaptedError
+from src.imagine2touch.models.models import imagine2touch_model
+from src.imagine2touch.reskin_calibration import dataset
+from src.imagine2touch.utils.utils import NotAdaptedError
 
 
 def parse_arguments():
@@ -72,13 +72,13 @@ def init_config():
     )
     OmegaConf.register_new_resolver("rgb_gray_factor", lambda x: 1 if x else 3)
     # load script configurations
-    hydra.initialize("../src/pseudo_touch/models/cfg", version_base=None)
+    hydra.initialize("../src/imagine2touch/models/cfg", version_base=None)
     cfg = hydra.compose("trainae.yaml")
     cfg_masks = hydra.compose("generate_masks.yaml")
     return cfg, cfg_masks
 
 
-def load_pseudo_touch_model():
+def load_imagine2touch_model():
     mean_reskin = np.load(
         f"{repo_path}/{cfg.model_path}/{cfg.model_id}/reskin_scaling_mean.npy",
         allow_pickle=True,
@@ -121,7 +121,7 @@ def load_pseudo_touch_model():
     }
     model = hydra.utils.instantiate(model_instance).to(device)
     model.load_state_dict(
-        torch.load(f"{repo_path}/{cfg.model_path}/{cfg.model_id}/pseudo_touch_model")
+        torch.load(f"{repo_path}/{cfg.model_path}/{cfg.model_id}/imagine2touch_model")
     )
     return (
         model,
@@ -154,7 +154,7 @@ if __name__ == "__main__":
             std_images,
             mean_reskin,
             std_reskin,
-        ) = load_pseudo_touch_model()
+        ) = load_imagine2touch_model()
     else:
         # create training loader
         (
@@ -273,7 +273,7 @@ if __name__ == "__main__":
                 pass
             else:
                 cfg.model.image_embedding_dim = n
-            model = pseudo_touch_model(**cfg.model).to(device)
+            model = imagine2touch_model(**cfg.model).to(device)
             print(model)
             (
                 model,
@@ -329,7 +329,7 @@ if __name__ == "__main__":
             ) as rgb_scaling_quantile_file:
                 dump(scaler_rgb, rgb_scaling_quantile_file)
             # save the model
-            torch.save(model.state_dict(), f"{model_folder}/pseudo_touch_model")
+            torch.save(model.state_dict(), f"{model_folder}/imagine2touch_model")
     # save mean_mse_tactile_graph
     if cfg.ablate_embedding:
         np.save(f"{model_folder}/mean_mse_tactile_graph.npy", mean_mse_tactile_graph)

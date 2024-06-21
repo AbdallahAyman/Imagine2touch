@@ -1,11 +1,11 @@
 # repo modules
-from src.pseudo_touch.localizers.wrist_camera_localizer import (
+from src.imagine2touch.localizers.wrist_camera_localizer import (
     generate_step_orientation,
     generate_step_pos,
 )
-from robot_io_ros.src.pseudo_touch.robot_io_ros.robot_io_client import RobotClient
+from robot_io_ros.src.imagine2touch.robot_io_ros.robot_io_client import RobotClient
 from robot_io.cams.realsense.realsense import Realsense
-from src.pseudo_touch.utils.utils import (
+from src.imagine2touch.utils.utils import (
     FIXED_ROBOT_ORN,
     ROBOT_IN_WORLD,
     WORLD_IN_ROBOT,
